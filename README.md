@@ -3,7 +3,7 @@
 
   # OGame Vue TS
 
-  一个基于 Vue 3 和 TypeScript 构建的现代化 OGame 太空策略游戏 Web 实现。
+  一个基于 Vue 3 和 TypeScript 构建的现代化 OGame 太空策略游戏。
 
   [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
   [![Vue 3](https://img.shields.io/badge/Vue-3.5-brightgreen.svg)](https://vuejs.org/)
@@ -14,26 +14,26 @@
 
 </div>
 
-## 📖 关于项目
+## 关于项目
 
 OGame Vue TS 是一款受经典 OGame 游戏启发的单机版、基于浏览器的太空策略游戏。在银河系中建立你的帝国，研究科技，建造舰船，参与史诗般的太空战斗。本项目采用现代 Web 技术构建，完全在浏览器中运行，提供流畅且响应迅速的游戏体验，所有数据都存储在本地。
 
-## ✨ 核心特性
+## 核心特性
 
-- 🌍 **多语言支持** - 支持 6 种语言：英语、简体中文、繁体中文、德语、俄语和韩语
-- 🏗️ **建筑管理** - 在行星和月球上建造和升级各种建筑
-- 🔬 **科技研究** - 解锁先进科技来增强你的帝国
-- 🚀 **舰队管理** - 建造舰船、派遣任务、参与战术太空战斗
-- 🛡️ **防御系统** - 部署防御设施来保护你的殖民地
-- 👨‍✈️ **军官系统** - 招募军官以获得战略优势
-- ⚔️ **战斗模拟器** - 在投入资源前测试战斗场景
-- 🌌 **银河视图** - 探索宇宙并与其他星球互动
-- 💾 **本地数据持久化** - 所有游戏数据都经过加密并存储在浏览器本地
-- 🌓 **深色/浅色主题** - 选择你喜欢的视觉主题
-- 📊 **队列管理** - 管理多个建造和研究队列
-- 🌙 **月球生成** - 基于概率的月球从残骸场生成机制
+- **多语言支持** - 支持 6 种语言：英语、简体中文、繁体中文、德语、俄语和韩语
+- **建筑管理** - 在行星和月球上建造和升级各种建筑
+- **科技研究** - 解锁先进科技来增强你的帝国
+- **舰队管理** - 建造舰船、派遣任务、参与战术太空战斗
+- **防御系统** - 部署防御设施来保护你的殖民地
+- **军官系统** - 招募军官以获得战略优势
+- **战斗模拟器** - 在投入资源前测试战斗场景
+- **银河视图** - 探索宇宙并与其他星球互动
+- **本地数据持久化** - 所有游戏数据都经过加密并存储在浏览器本地
+- **深色/浅色主题** - 选择你喜欢的视觉主题
+- **队列管理** - 管理多个建造和研究队列
+- **月球生成** - 基于概率的月球从残骸场生成机制
 
-## 🛠️ 技术栈
+## 技术栈
 
 - **前端框架:** [Vue 3](https://vuejs.org/) + Composition API (`<script setup>` 语法)
 - **开发语言:** [TypeScript](https://www.typescriptlang.org/) (启用严格类型检查)
@@ -46,7 +46,7 @@ OGame Vue TS 是一款受经典 OGame 游戏启发的单机版、基于浏览器
 - **动画效果:** [tw-animate-css](https://www.npmjs.com/package/tw-animate-css)
 - **国际化:** 自定义 i18n 实现
 
-## 🚀 快速开始
+## 快速开始
 
 ### 环境要求
 
@@ -85,7 +85,7 @@ pnpm build
 pnpm preview
 ```
 
-## 📁 项目结构
+## 项目结构
 
 ```
 ogame-vue-ts/
@@ -136,7 +136,7 @@ ogame-vue-ts/
 └── vite.config.ts      # Vite 配置
 ```
 
-## 🌐 支持的语言
+## 支持的语言
 
 - 🇺🇸 English (英语)
 - 🇨🇳 简体中文
@@ -145,7 +145,7 @@ ogame-vue-ts/
 - 🇷🇺 Русский (俄语)
 - 🇰🇷 한국어 (韩语)
 
-## 🎮 游戏特性
+## 游戏特性
 
 ### 资源管理
 - **金属** - 主要建筑材料
@@ -177,26 +177,26 @@ ogame-vue-ts/
 - 离子炮、等离子炮塔
 - 小型/大型防护罩
 
-## 🔒 数据安全
+## 数据安全
 
 所有游戏数据在存储到浏览器的本地存储之前都会使用 AES 加密自动加密。您的游戏进度是安全且私密的。
 
-## 🎨 自定义
+## 自定义
 
 应用支持通过 `src/style.css` 中定义的 Tailwind CSS 变量进行完整的主题自定义。您可以轻松地在浅色和深色模式之间切换。
 
-## 🤝 贡献
+## 贡献
 
 欢迎贡献！请随时提交 issue 或 pull request。
 
 ### Issue 模板
 我们提供以下中英文 issue 模板：
-- 🐛 BUG反馈 / Bug Report
-- ✨ 功能请求 / Feature Request
-- 📚 文档改进 / Documentation Improvement
-- 💡 反馈建议 / Feedback & Suggestion
+- BUG反馈 / Bug Report
+- 功能请求 / Feature Request
+- 文档改进 / Documentation Improvement
+- 反馈建议 / Feedback & Suggestion
 
-## 📄 许可证
+## 许可证
 
 本作品采用 [知识共享署名-非商业性使用 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc/4.0/) 进行许可。
 
@@ -208,27 +208,11 @@ ogame-vue-ts/
 - **署名** — 您必须给出适当的署名，提供指向本许可协议的链接，同时标明是否对原始作品作了修改
 - **非商业性使用** — 您不得将本作品用于商业目的
 
-**原作者：** Jun Qian (谦君)
-
-## 👨‍💻 作者
-
-- **GitHub:** [@setube](https://github.com/setube)
-- **项目地址:** [ogame-vue-ts](https://github.com/setube/ogame-vue-ts)
-
-## 💬 社区
-
-### 中文社区
-- **QQ 群:** 920930589
-
-### 国际社区
-- **GitHub Issues:** [报告 bug 或请求功能](https://github.com/setube/ogame-vue-ts/issues)
-- **GitHub Discussions:** [加入讨论](https://github.com/setube/ogame-vue-ts/discussions)
-
-## 🙏 致谢
+## 致谢
 
 本项目受原版 [OGame](https://ogame.org/) 浏览器游戏启发。所有游戏机制和设计元素都是为了教育和娱乐目的而重新实现的。
 
-## ⚠️ 免责声明
+## 免责声明
 
 本项目与 Gameforge AG 或官方 OGame 游戏没有任何关联、认可或联系。这是一个独立的粉丝项目，创建目的仅用于教育和个人娱乐。
 

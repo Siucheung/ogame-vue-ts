@@ -3,7 +3,7 @@
 
   # OGame Vue TS
 
-  A modern web-based implementation of the classic OGame space strategy game, built with Vue 3 and TypeScript.
+  A modern of the classic OGame space strategy game, built with Vue 3 and TypeScript.
 
   [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
   [![Vue 3](https://img.shields.io/badge/Vue-3.5-brightgreen.svg)](https://vuejs.org/)
@@ -13,26 +13,26 @@
 
 </div>
 
-## 📖 About
+## About
 
 OGame Vue TS is a single-player, browser-based space strategy game inspired by the classic OGame. Build your empire across the galaxy, research technologies, construct ships, and engage in epic space battles. This project is built with modern web technologies, offering a smooth and responsive gaming experience entirely in your browser with local data persistence.
 
-## ✨ Features
+## Features
 
-- 🌍 **Multi-language Support** - Available in 6 languages: English, Chinese (Simplified & Traditional), German, Russian, and Korean
-- 🏗️ **Building Management** - Construct and upgrade various buildings on planets and moons
-- 🔬 **Research Technologies** - Unlock advanced technologies to enhance your empire
-- 🚀 **Fleet Management** - Build ships, send missions, and engage in tactical space battles
-- 🛡️ **Defense Systems** - Deploy defensive structures to protect your colonies
-- 👨‍✈️ **Officers System** - Recruit officers to gain strategic advantages
-- ⚔️ **Battle Simulator** - Test combat scenarios before committing resources
-- 🌌 **Galaxy View** - Explore the universe and interact with other planets
-- 💾 **Local Data Persistence** - All game data is encrypted and stored locally in your browser
-- 🌓 **Dark/Light Mode** - Choose your preferred visual theme
-- 📊 **Queue Management** - Manage multiple build and research queues
-- 🌙 **Moon Generation** - Chance-based moon creation from debris fields
+- **Multi-language Support** - Available in 6 languages: English, Chinese (Simplified & Traditional), German, Russian, and Korean
+- **Building Management** - Construct and upgrade various buildings on planets and moons
+- **Research Technologies** - Unlock advanced technologies to enhance your empire
+- **Fleet Management** - Build ships, send missions, and engage in tactical space battles
+- **Defense Systems** - Deploy defensive structures to protect your colonies
+- **Officers System** - Recruit officers to gain strategic advantages
+- **Battle Simulator** - Test combat scenarios before committing resources
+- **Galaxy View** - Explore the universe and interact with other planets
+- **Local Data Persistence** - All game data is encrypted and stored locally in your browser
+- **Dark/Light Mode** - Choose your preferred visual theme
+- **Queue Management** - Manage multiple build and research queues
+- **Moon Generation** - Chance-based moon creation from debris fields
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend Framework:** [Vue 3](https://vuejs.org/) with Composition API (`<script setup>`)
 - **Language:** [TypeScript](https://www.typescriptlang.org/) with strict type checking
@@ -45,7 +45,7 @@ OGame Vue TS is a single-player, browser-based space strategy game inspired by t
 - **Animations:** [tw-animate-css](https://www.npmjs.com/package/tw-animate-css)
 - **Internationalization:** Custom i18n implementation
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -84,7 +84,7 @@ pnpm build
 pnpm preview
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ogame-vue-ts/
@@ -135,7 +135,7 @@ ogame-vue-ts/
 └── vite.config.ts      # Vite configuration
 ```
 
-## 🌐 Available Languages
+## Available Languages
 
 - 🇺🇸 English
 - 🇨🇳 简体中文 (Simplified Chinese)
@@ -144,7 +144,7 @@ ogame-vue-ts/
 - 🇷🇺 Русский (Russian)
 - 🇰🇷 한국어 (Korean)
 
-## 🎮 Game Features
+## Game Features
 
 ### Resource Management
 - **Metal** - Primary construction material
@@ -176,26 +176,26 @@ ogame-vue-ts/
 - Ion Cannon, Plasma Turret
 - Small/Large Shield Dome
 
-## 🔒 Data Security
+## Data Security
 
 All game data is automatically encrypted using AES encryption before being stored in your browser's local storage. Your game progress is secure and private.
 
-## 🎨 Customization
+## Customization
 
 The application supports full theme customization through Tailwind CSS variables defined in `src/style.css`. You can easily switch between light and dark modes.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ### Issue Templates
 We provide the following issue templates in both Chinese and English:
-- 🐛 Bug Report
-- ✨ Feature Request
-- 📚 Documentation Improvement
-- 💡 Feedback & Suggestion
+- Bug Report
+- Feature Request
+- Documentation Improvement
+- eedback & Suggestion
 
-## 📄 License
+## License
 
 This work is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
 
@@ -209,25 +209,11 @@ This work is licensed under the [Creative Commons Attribution-NonCommercial 4.0 
 
 **Original Author:** Jun Qian (谦君)
 
-## 👨‍💻 Author
-
-- **GitHub:** [@setube](https://github.com/setube)
-- **Project:** [ogame-vue-ts](https://github.com/setube/ogame-vue-ts)
-
-## 💬 Community
-
-### Chinese Community
-- **QQ Group:** 920930589
-
-### Global Community
-- **GitHub Issues:** [Report bugs or request features](https://github.com/setube/ogame-vue-ts/issues)
-- **GitHub Discussions:** [Join the conversation](https://github.com/setube/ogame-vue-ts/discussions)
-
-## 🙏 Acknowledgments
+## Acknowledgments
 
 This project is inspired by the original [OGame](https://ogame.org/) browser game. All game mechanics and design elements are reimplemented for educational and entertainment purposes.
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 This project is not affiliated with, endorsed by, or connected to Gameforge AG or the official OGame game. It is an independent fan project created for educational purposes and personal enjoyment.
 
