@@ -2,9 +2,8 @@ name: 构建多平台可执行程序
 
 on:
   push:
-    branches: [ main ]
-    tags: [ 'v*.*.*' ]
-  workflow_dispatch:
+    branches:
+      - main # 监听 main 分支的推送，不再强制要求手动推送 Tag
 
 jobs:
   build:
@@ -34,32 +33,41 @@ jobs:
         with:
           bun-version: latest
 
+      # --- 关键步骤：读取 package.json 的版本号 ---
+      - name: Get version from package.json
+        id: get_version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: v$VERSION"
+
       - name: Install Dependencies
         run: bun install
 
-      # 1. Vue 构建流程
       - name: Build Vue Frontend
-        run: bun run build # 假设你的 package.json 中 build 命令是 vite build 或 vue-cli-service build
+        run: bun run build
 
-      # 2. Bun 编译后端
       - name: Compile Executable
         run: bun build ./server.js --compile --outfile ${{ matrix.executable }}
 
-      # 3. 打包静态资源与可执行程序 (关键步骤)
       - name: Package Assets (Windows)
         if: matrix.os == 'windows-latest'
-        run: Compress-Archive -Path "${{ matrix.executable }}", "docs" -DestinationPath "${{ matrix.asset_name }}"
+        run: Compress-Archive -Path "${{ matrix.executable }}", "dist" -DestinationPath "${{ matrix.asset_name }}"
 
       - name: Package Assets (Linux/macOS)
         if: matrix.os != 'windows-latest'
-        run: tar -czvf ${{ matrix.asset_name }} ${{ matrix.executable }} docs/
+        run: tar -czvf ${{ matrix.asset_name }} ${{ matrix.executable }} dist/
 
-      # 4. 上传到构建产物 (用于下一步 Release)
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.asset_name }}
+
+    # 将版本号传递给 release 任务
+    outputs:
+      app_version: ${{ steps.get_version.outputs.VERSION }}
 
   release:
     needs: build
@@ -73,6 +81,13 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          # 使用从 build 任务传递过来的版本号
+          tag_name: ${{ needs.build.outputs.app_version }}
+          name: Release ${{ needs.build.outputs.app_version }}
+          draft: false
+          prerelease: false
+          # 自动创建 Tag (非常重要)
+          generate_release_notes: true
           files: |
             ogame-windows/ogame-windows.zip
             ogame-linux/ogame-linux.tar.gz
