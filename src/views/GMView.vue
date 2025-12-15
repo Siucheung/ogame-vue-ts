@@ -26,23 +26,14 @@
 
     <!-- 标签切换 -->
     <div v-if="selectedPlanet" class="flex flex-wrap gap-2 border-b">
-      <Button @click="activeTab = 'resources'" :variant="activeTab === 'resources' ? 'default' : 'ghost'" class="rounded-b-none">
-        {{ t('gmView.resources') }}
-      </Button>
-      <Button @click="activeTab = 'buildings'" :variant="activeTab === 'buildings' ? 'default' : 'ghost'" class="rounded-b-none">
-        {{ t('gmView.buildings') }}
-      </Button>
-      <Button @click="activeTab = 'research'" :variant="activeTab === 'research' ? 'default' : 'ghost'" class="rounded-b-none">
-        {{ t('gmView.research') }}
-      </Button>
-      <Button @click="activeTab = 'ships'" :variant="activeTab === 'ships' ? 'default' : 'ghost'" class="rounded-b-none">
-        {{ t('gmView.ships') }}
-      </Button>
-      <Button @click="activeTab = 'defense'" :variant="activeTab === 'defense' ? 'default' : 'ghost'" class="rounded-b-none">
-        {{ t('gmView.defense') }}
-      </Button>
-      <Button @click="activeTab = 'officers'" :variant="activeTab === 'officers' ? 'default' : 'ghost'" class="rounded-b-none">
-        {{ t('gmView.officers') }}
+      <Button
+        v-for="tab in tabs"
+        :key="tab.value"
+        @click="activeTab = tab.value"
+        :variant="activeTab === tab.value ? 'default' : 'ghost'"
+        class="rounded-b-none"
+      >
+        {{ t(tab.label) }}
       </Button>
     </div>
 
@@ -177,6 +168,62 @@
       </Card>
     </div>
 
+    <!-- NPC测试 -->
+    <Card class="border-primary">
+      <CardHeader>
+        <CardTitle>{{ t('gmView.npcTesting') || 'NPC Testing' }}</CardTitle>
+        <CardDescription>{{ t('gmView.npcTestingDesc') || 'Test NPC spy and attack behavior' }}</CardDescription>
+      </CardHeader>
+      <CardContent class="space-y-3">
+        <div class="space-y-2">
+          <Label>{{ t('gmView.selectNPC') || 'Select NPC' }}</Label>
+          <Select v-model="selectedNPCId">
+            <SelectTrigger>
+              <SelectValue :placeholder="t('gmView.chooseNPC') || 'Choose NPC'" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="npc in npcStore.npcs" :key="npc.id" :value="npc.id">{{ npc.name }} ({{ npc.difficulty }})</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div class="space-y-2">
+          <Label>{{ t('gmView.targetPlanet') || 'Target Planet' }}</Label>
+          <Select v-model="targetPlanetIndex">
+            <SelectTrigger>
+              <SelectValue :placeholder="t('gmView.chooseTarget') || 'Choose Target Planet'" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="(planet, index) in gameStore.player.planets" :key="planet.id" :value="index.toString()">
+                {{ planet.name }} ({{ planet.position.galaxy }}:{{ planet.position.system }}:{{ planet.position.position }})
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <Button @click="testNPCSpy" variant="outline" class="w-full" :disabled="!selectedNPC">
+            {{ t('gmView.testSpy') || 'Test Spy' }}
+          </Button>
+          <Button @click="testNPCAttack" variant="outline" class="w-full" :disabled="!selectedNPC">
+            {{ t('gmView.testAttack') || 'Test Attack' }}
+          </Button>
+        </div>
+
+        <Button @click="testNPCSpyAndAttack" variant="default" class="w-full" :disabled="!selectedNPC">
+          {{ t('gmView.testSpyAndAttack') || 'Test Spy & Attack' }}
+        </Button>
+
+        <Button @click="initializeNPCFleet" variant="secondary" class="w-full" :disabled="!selectedNPC">
+          {{ t('gmView.initializeFleet') || 'Initialize NPC Fleet' }}
+        </Button>
+
+        <Button @click="accelerateAllMissions" variant="secondary" class="w-full" :disabled="!selectedNPC">
+          {{ t('gmView.accelerateMissions') || 'Accelerate All Missions (5s)' }}
+        </Button>
+      </CardContent>
+    </Card>
+
     <!-- 危险操作 -->
     <Card class="border-destructive">
       <CardHeader>
@@ -193,6 +240,8 @@
 <script setup lang="ts">
   import { ref, computed } from 'vue'
   import { useGameStore } from '@/stores/gameStore'
+  import { useNPCStore } from '@/stores/npcStore'
+  import { useUniverseStore } from '@/stores/universeStore'
   import { useI18n } from '@/composables/useI18n'
   import { useGameConfig } from '@/composables/useGameConfig'
   import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -202,14 +251,19 @@
   import { Badge } from '@/components/ui/badge'
   import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
   import { BuildingType, TechnologyType, ShipType, DefenseType, OfficerType } from '@/types/game'
+  import * as npcBehaviorLogic from '@/logic/npcBehaviorLogic'
 
   const gameStore = useGameStore()
+  const npcStore = useNPCStore()
+  const universeStore = useUniverseStore()
   const { t } = useI18n()
   const { BUILDINGS, TECHNOLOGIES, SHIPS, DEFENSES, OFFICERS } = useGameConfig()
 
   const selectedPlanetId = ref<string>(gameStore.player.planets[0]?.id || '')
   const activeTab = ref<'resources' | 'buildings' | 'research' | 'ships' | 'defense' | 'officers'>('resources')
   const officerDays = ref<Record<OfficerType, number>>({} as Record<OfficerType, number>)
+  const selectedNPCId = ref<string>(npcStore.npcs[0]?.id || '')
+  const targetPlanetIndex = ref<string>('0')
 
   // 初始化军官天数显示
   Object.values(OfficerType).forEach(officer => {
@@ -226,12 +280,30 @@
     return gameStore.player.planets.find(p => p.id === selectedPlanetId.value)
   })
 
+  const selectedNPC = computed(() => {
+    return npcStore.npcs.find(npc => npc.id === selectedNPCId.value)
+  })
+
+  const allPlanets = computed(() => {
+    return [...gameStore.player.planets, ...Object.values(universeStore.planets)]
+  })
+
   const resourceTypes = ['metal', 'crystal', 'deuterium', 'darkMatter'] as const
   const buildingTypes = Object.values(BuildingType)
   const technologyTypes = Object.values(TechnologyType)
   const shipTypes = Object.values(ShipType)
   const defenseTypes = Object.values(DefenseType)
   const officerTypes = Object.values(OfficerType)
+
+  // Tab配置
+  const tabs = [
+    { value: 'resources' as const, label: 'gmView.resources' },
+    { value: 'buildings' as const, label: 'gmView.buildings' },
+    { value: 'research' as const, label: 'gmView.research' },
+    { value: 'ships' as const, label: 'gmView.ships' },
+    { value: 'defense' as const, label: 'gmView.defense' },
+    { value: 'officers' as const, label: 'gmView.officers' }
+  ]
 
   const setResourceAmount = (resource: string, amount: number) => {
     if (selectedPlanet.value) {
@@ -287,5 +359,114 @@
       localStorage.clear()
       location.reload()
     }
+  }
+
+  // NPC测试函数
+  const testNPCSpy = () => {
+    if (!selectedNPC.value) {
+      alert(t('gmView.selectNPCFirst') || 'Please select an NPC first')
+      return
+    }
+
+    const mission = npcBehaviorLogic.forceNPCSpyPlayer(
+      selectedNPC.value,
+      gameStore.player,
+      allPlanets.value,
+      parseInt(targetPlanetIndex.value)
+    )
+
+    if (mission) {
+      // 加速任务到5秒后到达
+      npcBehaviorLogic.accelerateNPCMission(selectedNPC.value, mission.id, 5)
+      alert(`${selectedNPC.value.name} will spy in 5 seconds`)
+    } else {
+      alert(t('gmView.npcNoProbes') || 'NPC does not have spy probes')
+    }
+  }
+
+  const testNPCAttack = () => {
+    if (!selectedNPC.value) {
+      alert(t('gmView.selectNPCFirst') || 'Please select an NPC first')
+      return
+    }
+
+    const mission = npcBehaviorLogic.forceNPCAttackPlayer(
+      selectedNPC.value,
+      gameStore.player,
+      allPlanets.value,
+      parseInt(targetPlanetIndex.value)
+    )
+
+    if (mission) {
+      // 加速任务到5秒后到达
+      npcBehaviorLogic.accelerateNPCMission(selectedNPC.value, mission.id, 5)
+      alert(`${selectedNPC.value.name} will attack in 5 seconds`)
+    } else {
+      alert(t('gmView.npcNoSpyReport') || 'NPC needs to spy first')
+    }
+  }
+
+  const testNPCSpyAndAttack = () => {
+    if (!selectedNPC.value) {
+      alert(t('gmView.selectNPCFirst') || 'Please select an NPC first')
+      return
+    }
+
+    const { spyMission, attackMission } = npcBehaviorLogic.forceNPCSpyAndAttack(
+      selectedNPC.value,
+      gameStore.player,
+      allPlanets.value,
+      parseInt(targetPlanetIndex.value)
+    )
+
+    if (spyMission && attackMission) {
+      // 加速任务：侦查5秒后到达，攻击10秒后到达
+      npcBehaviorLogic.accelerateNPCMission(selectedNPC.value, spyMission.id, 5)
+      npcBehaviorLogic.accelerateNPCMission(selectedNPC.value, attackMission.id, 10)
+      alert(`${selectedNPC.value.name} will spy in 5s and attack in 10s`)
+    } else {
+      alert(t('gmView.npcMissionFailed') || 'Failed to create missions')
+    }
+  }
+
+  const accelerateAllMissions = () => {
+    if (!selectedNPC.value) {
+      alert(t('gmView.selectNPCFirst') || 'Please select an NPC first')
+      return
+    }
+
+    const count = npcBehaviorLogic.accelerateAllNPCMissions(selectedNPC.value, 5)
+    alert(`Accelerated ${count} missions to 5 seconds`)
+  }
+
+  // 初始化NPC舰队
+  const initializeNPCFleet = () => {
+    if (!selectedNPC.value) {
+      alert(t('gmView.selectNPCFirst') || 'Please select an NPC first')
+      return
+    }
+
+    // 给NPC的第一个星球添加基础舰队
+    const npcPlanet = selectedNPC.value.planets[0]
+    if (!npcPlanet) {
+      alert('NPC has no planets')
+      return
+    }
+
+    // 添加间谍探测器
+    npcPlanet.fleet[ShipType.EspionageProbe] = (npcPlanet.fleet[ShipType.EspionageProbe] || 0) + 100
+
+    // 添加战斗舰船
+    npcPlanet.fleet[ShipType.LightFighter] = (npcPlanet.fleet[ShipType.LightFighter] || 0) + 500
+    npcPlanet.fleet[ShipType.HeavyFighter] = (npcPlanet.fleet[ShipType.HeavyFighter] || 0) + 300
+    npcPlanet.fleet[ShipType.Cruiser] = (npcPlanet.fleet[ShipType.Cruiser] || 0) + 200
+    npcPlanet.fleet[ShipType.Battleship] = (npcPlanet.fleet[ShipType.Battleship] || 0) + 100
+    npcPlanet.fleet[ShipType.Bomber] = (npcPlanet.fleet[ShipType.Bomber] || 0) + 50
+    npcPlanet.fleet[ShipType.Destroyer] = (npcPlanet.fleet[ShipType.Destroyer] || 0) + 30
+    npcPlanet.fleet[ShipType.Battlecruiser] = (npcPlanet.fleet[ShipType.Battlecruiser] || 0) + 20
+
+    alert(
+      `${selectedNPC.value.name} fleet initialized:\n- 100 Spy Probes\n- 500 Light Fighters\n- 300 Heavy Fighters\n- 200 Cruisers\n- 100 Battleships\n- 50 Bombers\n- 30 Destroyers\n- 20 Battlecruisers`
+    )
   }
 </script>

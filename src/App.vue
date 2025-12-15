@@ -228,7 +228,18 @@
     </SidebarInset>
 
     <!-- 确认对话框 -->
-    <ConfirmDialog ref="confirmDialog" />
+    <AlertDialog :open="confirmDialogOpen" @update:open="confirmDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{{ confirmDialogTitle }}</AlertDialogTitle>
+          <AlertDialogDescription>{{ confirmDialogMessage }}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{{ t('common.cancel') }}</AlertDialogCancel>
+          <AlertDialogAction @click="handleConfirmAction">{{ t('common.confirm') }}</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
     <!-- 详情弹窗 -->
     <DetailDialog />
@@ -242,7 +253,6 @@
   import { onMounted, onUnmounted, computed, ref } from 'vue'
   import { RouterView, RouterLink } from 'vue-router'
   import { useGameStore } from '@/stores/gameStore'
-  import { useUniverseStore } from '@/stores/universeStore'
   import { useTheme } from '@/composables/useTheme'
   import { useI18n } from '@/composables/useI18n'
   import { localeNames, detectBrowserLocale, type Locale } from '@/locales'
@@ -265,11 +275,18 @@
     SidebarTrigger
   } from '@/components/ui/sidebar'
   import ResourceIcon from '@/components/ResourceIcon.vue'
-  import ConfirmDialog from '@/components/ConfirmDialog.vue'
   import DetailDialog from '@/components/DetailDialog.vue'
   import Sonner from '@/components/ui/sonner/Sonner.vue'
-  import { MissionType } from '@/types/game'
-  import type { BuildQueueItem, FleetMission } from '@/types/game'
+  import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+  } from '@/components/ui/alert-dialog'
   import { formatNumber, formatTime, getResourceColor } from '@/utils/format'
   import {
     Moon,
@@ -289,175 +306,52 @@
     Wrench,
     ChevronsLeft
   } from 'lucide-vue-next'
-  import * as gameLogic from '@/logic/gameLogic'
-  import * as planetLogic from '@/logic/planetLogic'
   import * as officerLogic from '@/logic/officerLogic'
-  import * as buildingValidation from '@/logic/buildingValidation'
   import * as resourceLogic from '@/logic/resourceLogic'
-  import * as researchValidation from '@/logic/researchValidation'
-  import * as fleetLogic from '@/logic/fleetLogic'
-  import * as shipLogic from '@/logic/shipLogic'
-  import pkg from '../package.json'
+  import { useGameLifecycle } from '@/composables/useGameLifecycle'
+  import { useMissionHandler } from '@/composables/useMissionHandler'
+  import { useNPCHandler } from '@/composables/useNPCHandler'
+  import { useQueueHandler } from '@/composables/useQueueHandler'
+  import { useGameUpdate } from '@/composables/useGameUpdate'
   import { migrateGameData } from '@/utils/migration'
-
-  // 执行数据迁移（在 store 初始化之前）
+  import pkg from '../package.json'
   migrateGameData()
-
   const gameStore = useGameStore()
-  const universeStore = useUniverseStore()
   const { isDark } = useTheme()
   const { t } = useI18n()
-  const confirmDialog = ref<InstanceType<typeof ConfirmDialog> | null>(null)
-
+  const confirmDialogOpen = ref(false)
+  const confirmDialogTitle = ref('')
+  const confirmDialogMessage = ref('')
+  const confirmDialogAction = ref<(() => void) | null>(null)
   // 所有可用的语言选项
   const locales: Locale[] = ['zh-CN', 'zh-TW', 'en', 'de', 'ru', 'ko', 'ja']
 
   // 侧边栏状态（不持久化，根据屏幕尺寸初始化）
-  // PC端（≥1024px）默认打开，移动端默认关闭
   const sidebarOpen = ref(window.innerWidth >= 1024)
 
-  const initGame = async () => {
-    const shouldInit = gameLogic.shouldInitializeGame(gameStore.player.planets)
-    if (!shouldInit) {
-      const now = Date.now()
+  // 初始化 composables
+  const { initGame } = useGameLifecycle()
 
-      // 计算离线收益（直接同步计算）
-      const bonuses = officerLogic.calculateActiveBonuses(gameStore.player.officers, now)
-      gameStore.player.planets.forEach(planet => {
-        resourceLogic.updatePlanetResources(planet, now, bonuses)
-      })
+  const { processMissionArrival, processMissionReturn } = useMissionHandler(t)
 
-      generateNPCPlanets()
-      return
-    }
-    gameStore.player = gameLogic.initializePlayer(gameStore.player.id, t('common.playerName'))
-    const initialPlanet = planetLogic.createInitialPlanet(gameStore.player.id, t('planet.homePlanet'))
-    gameStore.player.planets = [initialPlanet]
-    gameStore.currentPlanetId = initialPlanet.id
-  }
+  const { processNPCMissionArrival, processNPCMissionReturn, updateNPCGrowth, updateNPCBehavior } = useNPCHandler()
 
-  const generateNPCPlanets = () => {
-    const npcCount = 200
-    for (let i = 0; i < npcCount; i++) {
-      const position = gameLogic.generateRandomPosition()
-      const key = gameLogic.generatePositionKey(position.galaxy, position.system, position.position)
-      if (universeStore.planets[key]) continue
-      const npcPlanet = planetLogic.createNPCPlanet(i, position, t('planet.planetPrefix'))
-      universeStore.planets[key] = npcPlanet
-    }
-  }
+  const { handleCancelBuild, handleCancelResearch, getItemName, getRemainingTime, getQueueProgress } = useQueueHandler(
+    t,
+    confirmDialogOpen,
+    confirmDialogTitle,
+    confirmDialogMessage,
+    confirmDialogAction
+  )
 
-  const updateGame = () => {
-    if (gameStore.isPaused) return
-    const now = Date.now()
-    gameStore.gameTime = now
-    // 检查军官过期
-    gameLogic.checkOfficersExpiration(gameStore.player.officers, now)
-    // 处理游戏更新（建造队列、研究队列等）
-    const result = gameLogic.processGameUpdate(gameStore.player, now)
-    gameStore.player.researchQueue = result.updatedResearchQueue
-    // 处理舰队任务
-    gameStore.player.fleetMissions.forEach(mission => {
-      if (mission.status === 'outbound' && now >= mission.arrivalTime) {
-        processMissionArrival(mission)
-      } else if (mission.status === 'returning' && mission.returnTime && now >= mission.returnTime) {
-        processMissionReturn(mission)
-      }
-    })
-  }
-
-  const processMissionArrival = async (mission: FleetMission) => {
-    // 从宇宙星球地图中查找目标星球
-    const targetKey = gameLogic.generatePositionKey(
-      mission.targetPosition.galaxy,
-      mission.targetPosition.system,
-      mission.targetPosition.position
-    )
-    // 先从玩家星球中查找，再从宇宙地图中查找
-    const targetPlanet =
-      gameStore.player.planets.find(
-        p =>
-          p.position.galaxy === mission.targetPosition.galaxy &&
-          p.position.system === mission.targetPosition.system &&
-          p.position.position === mission.targetPosition.position
-      ) || universeStore.planets[targetKey]
-
-    if (mission.missionType === MissionType.Transport) {
-      fleetLogic.processTransportArrival(mission, targetPlanet)
-    } else if (mission.missionType === MissionType.Attack) {
-      const attackResult = await fleetLogic.processAttackArrival(mission, targetPlanet, gameStore.player, null, gameStore.player.planets)
-      if (attackResult) {
-        gameStore.player.battleReports.push(attackResult.battleResult)
-        if (attackResult.moon) {
-          gameStore.player.planets.push(attackResult.moon)
-        }
-        if (attackResult.debrisField) {
-          // 将残骸场添加到游戏状态
-          universeStore.debrisFields[attackResult.debrisField.id] = attackResult.debrisField
-        }
-      }
-    } else if (mission.missionType === MissionType.Colonize) {
-      const newPlanet = fleetLogic.processColonizeArrival(mission, targetPlanet, gameStore.player.id, t('planet.colonyPrefix'))
-      if (newPlanet) {
-        gameStore.player.planets.push(newPlanet)
-      }
-    } else if (mission.missionType === MissionType.Spy) {
-      const spyReport = fleetLogic.processSpyArrival(mission, targetPlanet, gameStore.player.id)
-      if (spyReport) gameStore.player.spyReports.push(spyReport)
-    } else if (mission.missionType === MissionType.Deploy) {
-      const deployed = fleetLogic.processDeployArrival(mission, targetPlanet, gameStore.player.id)
-      if (deployed) {
-        const missionIndex = gameStore.player.fleetMissions.indexOf(mission)
-        if (missionIndex > -1) gameStore.player.fleetMissions.splice(missionIndex, 1)
-        return
-      }
-    } else if (mission.missionType === MissionType.Recycle) {
-      // 处理回收任务
-      const debrisId = `debris_${mission.targetPosition.galaxy}_${mission.targetPosition.system}_${mission.targetPosition.position}`
-      const debrisField = universeStore.debrisFields[debrisId]
-      const recycleResult = fleetLogic.processRecycleArrival(mission, debrisField)
-      if (recycleResult && debrisField) {
-        if (recycleResult.remainingDebris && (recycleResult.remainingDebris.metal > 0 || recycleResult.remainingDebris.crystal > 0)) {
-          // 更新残骸场
-          universeStore.debrisFields[debrisId] = {
-            id: debrisField.id,
-            position: debrisField.position,
-            resources: recycleResult.remainingDebris,
-            createdAt: debrisField.createdAt,
-            expiresAt: debrisField.expiresAt
-          }
-        } else {
-          // 残骸场已被完全收集，删除
-          delete universeStore.debrisFields[debrisId]
-        }
-      }
-    } else if (mission.missionType === MissionType.Destroy) {
-      // 处理行星毁灭任务
-      const destroyResult = fleetLogic.processDestroyArrival(mission, targetPlanet, gameStore.player)
-      if (destroyResult && destroyResult.success && destroyResult.planetId) {
-        // 星球被摧毁
-        // 从玩家星球列表中移除（如果是玩家的星球）
-        const planetIndex = gameStore.player.planets.findIndex(p => p.id === destroyResult.planetId)
-        if (planetIndex > -1) {
-          gameStore.player.planets.splice(planetIndex, 1)
-        } else {
-          // 不是玩家星球，从宇宙地图中移除
-          delete universeStore.planets[targetKey]
-        }
-
-        // TODO: 可以添加战斗报告或摧毁报告来通知玩家结果
-      }
-    }
-  }
-
-  const processMissionReturn = (mission: FleetMission) => {
-    const originPlanet = gameStore.player.planets.find(p => p.id === mission.originPlanetId)
-    if (!originPlanet) return
-    shipLogic.addFleet(originPlanet.fleet, mission.fleet)
-    resourceLogic.addResources(originPlanet.resources, mission.cargo)
-    const missionIndex = gameStore.player.fleetMissions.indexOf(mission)
-    if (missionIndex > -1) gameStore.player.fleetMissions.splice(missionIndex, 1)
-  }
+  const { updateGame } = useGameUpdate(
+    processMissionArrival,
+    processMissionReturn,
+    processNPCMissionArrival,
+    processNPCMissionReturn,
+    updateNPCGrowth,
+    updateNPCBehavior
+  )
 
   // 游戏循环定时器
   let gameLoop: ReturnType<typeof setInterval> | null = null
@@ -474,7 +368,7 @@
     if (isFirstVisit) {
       gameStore.locale = detectBrowserLocale()
     }
-    await initGame()
+    await initGame(t('common.playerName'), t('planet.homePlanet'), t('planet.planetPrefix'))
     // 启动游戏循环
     gameLoop = setInterval(() => {
       updateGame()
@@ -561,71 +455,12 @@
     sidebarOpen.value = !sidebarOpen.value
   }
 
-  // 获取队列项的名称
-  const getItemName = (item: BuildQueueItem): string => {
-    if (item.type === 'building' || item.type === 'demolish') {
-      const buildingName = t(`buildings.${item.itemType}`)
-      return item.type === 'demolish' ? `${t('buildingsView.demolish')} - ${buildingName}` : buildingName
-    } else if (item.type === 'technology') {
-      return t(`technologies.${item.itemType}`)
-    } else if (item.type === 'ship') {
-      return t(`ships.${item.itemType}`)
-    } else if (item.type === 'defense') {
-      return t(`defenses.${item.itemType}`)
+  // 处理确认对话框的确认操作
+  const handleConfirmAction = () => {
+    if (confirmDialogAction.value) {
+      confirmDialogAction.value()
     }
-    return item.itemType
-  }
-
-  // 获取剩余时间
-  const getRemainingTime = (item: BuildQueueItem): number => {
-    const now = Date.now()
-    return Math.max(0, Math.floor((item.endTime - now) / 1000))
-  }
-
-  // 获取队列进度
-  const getQueueProgress = (item: BuildQueueItem): number => {
-    const now = Date.now()
-    const total = item.endTime - item.startTime
-    const elapsed = now - item.startTime
-    return Math.min(100, Math.max(0, (elapsed / total) * 100))
-  }
-
-  // 取消建造
-  const handleCancelBuild = (queueId: string) => {
-    confirmDialog.value?.show({
-      title: t('queue.cancelBuild'),
-      message: t('queue.confirmCancel'),
-      onConfirm: () => {
-        if (!gameStore.currentPlanet) return false
-        const { item, index } = buildingValidation.findQueueItem(gameStore.currentPlanet.buildQueue, queueId)
-        if (!item) return false
-        if (item.type === 'building') {
-          const refund = buildingValidation.cancelBuildingUpgrade(gameStore.currentPlanet, item)
-          resourceLogic.addResources(gameStore.currentPlanet.resources, refund)
-        }
-        gameStore.currentPlanet.buildQueue.splice(index, 1)
-        return true
-      }
-    })
-  }
-
-  // 取消研究
-  const handleCancelResearch = (queueId: string) => {
-    confirmDialog.value?.show({
-      title: t('queue.cancelResearch'),
-      message: t('queue.confirmCancel'),
-      onConfirm: () => {
-        if (!gameStore.currentPlanet) return false
-        const { item, index } = buildingValidation.findQueueItem(gameStore.player.researchQueue, queueId)
-        if (!item) return false
-        if (item.type === 'technology') {
-          const refund = researchValidation.cancelTechnologyResearch(item)
-          resourceLogic.addResources(gameStore.currentPlanet.resources, refund)
-        }
-        gameStore.player.researchQueue.splice(index, 1)
-        return true
-      }
-    })
+    confirmDialogOpen.value = false
   }
 </script>
 

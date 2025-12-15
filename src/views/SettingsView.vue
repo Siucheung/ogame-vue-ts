@@ -164,7 +164,7 @@
   let confirmCallback: (() => void) | null = null
 
   const openGithub = () => {
-    window.open(`https://github.com/${pkg.author}/${pkg.name}`, '_blank')
+    window.open(`https://github.com/${pkg.author.name}/${pkg.name}`, '_blank')
   }
 
   const openQQGroup = () => {
@@ -180,6 +180,8 @@
       const gameData = localStorage.getItem(pkg.name)
       // 获取地图数据
       const universeData = localStorage.getItem(`${pkg.name}-universe`)
+      // 获取npc数据
+      const npcData = localStorage.getItem(`${pkg.name}-npcs`)
 
       if (!gameData) {
         toast.error(t('settings.exportFailed'))
@@ -189,6 +191,7 @@
       // 合并数据
       const exportData = {
         game: gameData,
+        npcs: npcData,
         universe: universeData || null
       }
 
@@ -245,6 +248,10 @@
 
             if (importData.universe) {
               localStorage.setItem(`${pkg.name}-universe`, importData.universe)
+            }
+
+            if (importData.npcs) {
+              localStorage.setItem(`${pkg.name}-npcs`, importData.npcs)
             }
 
             toast.success(t('settings.importSuccess'))

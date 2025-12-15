@@ -20,13 +20,30 @@ export const calculateBuildingCost = (buildingType: BuildingType, targetLevel: n
 
 /**
  * 计算建筑升级时间
+ * @param buildingType 建筑类型
+ * @param targetLevel 目标等级
+ * @param buildingSpeedBonus 指挥官等提供的速度加成百分比
+ * @param roboticsFactoryLevel 机器人工厂等级
+ * @param naniteFactoryLevel 纳米工厂等级
  */
-export const calculateBuildingTime = (buildingType: BuildingType, targetLevel: number, buildingSpeedBonus: number = 0): number => {
+export const calculateBuildingTime = (
+  buildingType: BuildingType,
+  targetLevel: number,
+  buildingSpeedBonus: number = 0,
+  roboticsFactoryLevel: number = 0,
+  naniteFactoryLevel: number = 0
+): number => {
   const config = BUILDINGS[buildingType]
   const multiplier = Math.pow(config.costMultiplier, targetLevel - 1)
   const baseTime = config.baseTime * multiplier
+
+  // 机器人工厂和纳米工厂的加速：建造时间 / (1 + 机器人工厂等级 + 纳米工厂等级 × 2)
+  const factorySpeedDivisor = 1 + roboticsFactoryLevel + naniteFactoryLevel * 2
+
+  // 指挥官等的百分比加成
   const speedMultiplier = 1 - buildingSpeedBonus / 100
-  return Math.floor(baseTime * speedMultiplier)
+
+  return Math.floor((baseTime / factorySpeedDivisor) * speedMultiplier)
 }
 
 /**
@@ -98,7 +115,11 @@ export const createBuildQueueItem = (buildingType: BuildingType, targetLevel: nu
 /**
  * 处理建造完成
  */
-export const completeBuildQueue = (planet: Planet, now: number, onPointsEarned?: (points: number, type: 'building' | 'ship' | 'defense', itemType: string, level?: number, quantity?: number) => void): void => {
+export const completeBuildQueue = (
+  planet: Planet,
+  now: number,
+  onPointsEarned?: (points: number, type: 'building' | 'ship' | 'defense', itemType: string, level?: number, quantity?: number) => void
+): void => {
   planet.buildQueue = planet.buildQueue.filter(item => {
     if (now >= item.endTime) {
       // 建造完成
@@ -167,10 +188,18 @@ export const calculateDemolishRefund = (buildingType: BuildingType, currentLevel
  * @param buildingType 建筑类型
  * @param currentLevel 当前等级
  * @param buildingSpeedBonus 建筑速度加成
+ * @param roboticsFactoryLevel 机器人工厂等级
+ * @param naniteFactoryLevel 纳米工厂等级
  * @returns 拆除时间（建造时间的50%）
  */
-export const calculateDemolishTime = (buildingType: BuildingType, currentLevel: number, buildingSpeedBonus: number = 0): number => {
-  const buildTime = calculateBuildingTime(buildingType, currentLevel, buildingSpeedBonus)
+export const calculateDemolishTime = (
+  buildingType: BuildingType,
+  currentLevel: number,
+  buildingSpeedBonus: number = 0,
+  roboticsFactoryLevel: number = 0,
+  naniteFactoryLevel: number = 0
+): number => {
+  const buildTime = calculateBuildingTime(buildingType, currentLevel, buildingSpeedBonus, roboticsFactoryLevel, naniteFactoryLevel)
   return Math.floor(buildTime * 0.5)
 }
 

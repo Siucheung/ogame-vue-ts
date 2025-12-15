@@ -1,5 +1,5 @@
 import type { Planet, Resources, BuildQueueItem, Fleet, Officer } from '@/types/game'
-import { ShipType, DefenseType, TechnologyType, OfficerType } from '@/types/game'
+import { ShipType, DefenseType, TechnologyType, OfficerType, BuildingType } from '@/types/game'
 import * as shipLogic from './shipLogic'
 import * as resourceLogic from './resourceLogic'
 import * as officerLogic from './officerLogic'
@@ -51,7 +51,18 @@ export const executeShipBuild = (
 
   // 计算军官加成
   const bonuses = officerLogic.calculateActiveBonuses(officers, Date.now())
-  const buildTime = shipLogic.calculateShipBuildTime(shipType, quantity, bonuses.buildingSpeedBonus)
+
+  // 获取机器人工厂和纳米工厂等级
+  const roboticsFactoryLevel = planet.buildings[BuildingType.RoboticsFactory] || 0
+  const naniteFactoryLevel = planet.buildings[BuildingType.NaniteFactory] || 0
+
+  const buildTime = shipLogic.calculateShipBuildTime(
+    shipType,
+    quantity,
+    bonuses.buildingSpeedBonus,
+    roboticsFactoryLevel,
+    naniteFactoryLevel
+  )
 
   // 扣除资源
   resourceLogic.deductResources(planet.resources, totalCost)
@@ -105,7 +116,18 @@ export const executeDefenseBuild = (
 
   // 计算军官加成
   const bonuses = officerLogic.calculateActiveBonuses(officers, Date.now())
-  const buildTime = shipLogic.calculateDefenseBuildTime(defenseType, quantity, bonuses.buildingSpeedBonus)
+
+  // 获取机器人工厂和纳米工厂等级
+  const roboticsFactoryLevel = planet.buildings[BuildingType.RoboticsFactory] || 0
+  const naniteFactoryLevel = planet.buildings[BuildingType.NaniteFactory] || 0
+
+  const buildTime = shipLogic.calculateDefenseBuildTime(
+    defenseType,
+    quantity,
+    bonuses.buildingSpeedBonus,
+    roboticsFactoryLevel,
+    naniteFactoryLevel
+  )
 
   // 扣除资源
   resourceLogic.deductResources(planet.resources, totalCost)

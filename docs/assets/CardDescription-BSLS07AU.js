@@ -1,0 +1,1 @@
+import{Gn as e,Qt as t,_n as n,mn as r,qn as i,tn as a}from"./game-logic-Bi1l7y4K.js";import{G as o}from"./index-BT5w6et-.js";var s=a({__name:`CardDescription`,props:{class:{}},setup(a){let s=a;return(a,c)=>(r(),t(`p`,{"data-slot":`card-description`,class:i(e(o)(`text-muted-foreground text-sm`,s.class))},[n(a.$slots,`default`)],2))}});export{s as t};

@@ -9,20 +9,20 @@
       <Card v-for="defenseType in Object.values(DefenseType)" :key="defenseType" class="relative">
         <CardUnlockOverlay :requirements="DEFENSES[defenseType].requirements" />
         <CardHeader>
-          <div class="flex justify-between items-start gap-2">
-            <div class="min-w-0 flex-1">
+          <div class="mb-2">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
               <CardTitle
-                class="text-base sm:text-lg cursor-pointer hover:text-primary transition-colors"
+                class="text-sm sm:text-base lg:text-lg cursor-pointer hover:text-primary transition-colors underline decoration-dotted underline-offset-4 order-2 sm:order-1"
                 @click="detailDialog.openDefense(defenseType)"
               >
                 {{ DEFENSES[defenseType].name }}
               </CardTitle>
-              <CardDescription class="text-xs sm:text-sm">{{ DEFENSES[defenseType].description }}</CardDescription>
+              <Badge variant="secondary" class="text-xs whitespace-nowrap self-start order-1 sm:order-2">
+                {{ planet.defense[defenseType] }}
+              </Badge>
             </div>
-            <Badge variant="secondary" class="text-xs whitespace-nowrap flex-shrink-0">
-              {{ planet.defense[defenseType] }}
-            </Badge>
           </div>
+          <CardDescription class="text-xs sm:text-sm">{{ DEFENSES[defenseType].description }}</CardDescription>
         </CardHeader>
         <CardContent>
           <div class="space-y-3 sm:space-y-4">
@@ -48,34 +48,19 @@
             <div class="text-xs sm:text-sm space-y-1.5 sm:space-y-2">
               <p class="text-muted-foreground mb-1 sm:mb-2">{{ t('defenseView.unitCost') }}:</p>
               <div class="space-y-1 sm:space-y-1.5">
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                  <ResourceIcon type="metal" size="sm" />
-                  <span class="text-xs">{{ t('resources.metal') }}:</span>
+                <div
+                  v-for="resourceType in costResourceTypes"
+                  :key="resourceType.key"
+                  v-show="resourceType.key !== 'darkMatter' || DEFENSES[defenseType].cost.darkMatter > 0"
+                  class="flex items-center gap-1.5 sm:gap-2"
+                >
+                  <ResourceIcon :type="resourceType.key" size="sm" />
+                  <span class="text-xs">{{ t(`resources.${resourceType.key}`) }}:</span>
                   <span
                     class="font-medium text-xs sm:text-sm"
-                    :class="getResourceCostColor(planet.resources.metal, DEFENSES[defenseType].cost.metal)"
+                    :class="getResourceCostColor(planet.resources[resourceType.key], DEFENSES[defenseType].cost[resourceType.key])"
                   >
-                    {{ formatNumber(DEFENSES[defenseType].cost.metal) }}
-                  </span>
-                </div>
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                  <ResourceIcon type="crystal" size="sm" />
-                  <span class="text-xs">{{ t('resources.crystal') }}:</span>
-                  <span
-                    class="font-medium text-xs sm:text-sm"
-                    :class="getResourceCostColor(planet.resources.crystal, DEFENSES[defenseType].cost.crystal)"
-                  >
-                    {{ formatNumber(DEFENSES[defenseType].cost.crystal) }}
-                  </span>
-                </div>
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                  <ResourceIcon type="deuterium" size="sm" />
-                  <span class="text-xs">{{ t('resources.deuterium') }}:</span>
-                  <span
-                    class="font-medium text-xs sm:text-sm"
-                    :class="getResourceCostColor(planet.resources.deuterium, DEFENSES[defenseType].cost.deuterium)"
-                  >
-                    {{ formatNumber(DEFENSES[defenseType].cost.deuterium) }}
+                    {{ formatNumber(DEFENSES[defenseType].cost[resourceType.key]) }}
                   </span>
                 </div>
               </div>
@@ -101,34 +86,19 @@
             <div v-if="quantities[defenseType] > 0" class="text-xs sm:text-sm space-y-1.5 sm:space-y-2 p-2.5 sm:p-3 bg-muted rounded-lg">
               <p class="font-medium text-muted-foreground">{{ t('defenseView.totalCost') }}:</p>
               <div class="space-y-1 sm:space-y-1.5">
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                  <ResourceIcon type="metal" size="sm" />
-                  <span class="text-xs">{{ t('resources.metal') }}:</span>
+                <div
+                  v-for="resourceType in costResourceTypes"
+                  :key="resourceType.key"
+                  v-show="resourceType.key !== 'darkMatter' || getTotalCost(defenseType).darkMatter > 0"
+                  class="flex items-center gap-1.5 sm:gap-2"
+                >
+                  <ResourceIcon :type="resourceType.key" size="sm" />
+                  <span class="text-xs">{{ t(`resources.${resourceType.key}`) }}:</span>
                   <span
                     class="font-medium text-xs sm:text-sm"
-                    :class="getResourceCostColor(planet.resources.metal, getTotalCost(defenseType).metal)"
+                    :class="getResourceCostColor(planet.resources[resourceType.key], getTotalCost(defenseType)[resourceType.key])"
                   >
-                    {{ formatNumber(getTotalCost(defenseType).metal) }}
-                  </span>
-                </div>
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                  <ResourceIcon type="crystal" size="sm" />
-                  <span class="text-xs">{{ t('resources.crystal') }}:</span>
-                  <span
-                    class="font-medium text-xs sm:text-sm"
-                    :class="getResourceCostColor(planet.resources.crystal, getTotalCost(defenseType).crystal)"
-                  >
-                    {{ formatNumber(getTotalCost(defenseType).crystal) }}
-                  </span>
-                </div>
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                  <ResourceIcon type="deuterium" size="sm" />
-                  <span class="text-xs">{{ t('resources.deuterium') }}:</span>
-                  <span
-                    class="font-medium text-xs sm:text-sm"
-                    :class="getResourceCostColor(planet.resources.deuterium, getTotalCost(defenseType).deuterium)"
-                  >
-                    {{ formatNumber(getTotalCost(defenseType).deuterium) }}
+                    {{ formatNumber(getTotalCost(defenseType)[resourceType.key]) }}
                   </span>
                 </div>
               </div>
@@ -143,7 +113,19 @@
     </div>
 
     <!-- 提示对话框 -->
-    <AlertDialog ref="alertDialog" />
+    <AlertDialog :open="alertDialogOpen" @update:open="alertDialogOpen = $event">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{{ alertDialogTitle }}</AlertDialogTitle>
+          <AlertDialogDescription class="whitespace-pre-line">
+            {{ alertDialogMessage }}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction>{{ t('common.confirm') }}</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
@@ -160,7 +142,15 @@
   import { Label } from '@/components/ui/label'
   import { Badge } from '@/components/ui/badge'
   import ResourceIcon from '@/components/ResourceIcon.vue'
-  import AlertDialog from '@/components/AlertDialog.vue'
+  import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+  } from '@/components/ui/alert-dialog'
   import UnlockRequirement from '@/components/UnlockRequirement.vue'
   import CardUnlockOverlay from '@/components/CardUnlockOverlay.vue'
   import { formatNumber, getResourceCostColor } from '@/utils/format'
@@ -172,7 +162,19 @@
   const { t } = useI18n()
   const { DEFENSES } = useGameConfig()
   const planet = computed(() => gameStore.currentPlanet)
-  const alertDialog = ref<InstanceType<typeof AlertDialog> | null>(null)
+
+  // AlertDialog 状态
+  const alertDialogOpen = ref(false)
+  const alertDialogTitle = ref('')
+  const alertDialogMessage = ref('')
+
+  // 资源类型配置（用于成本显示）
+  const costResourceTypes = [
+    { key: 'metal' as const },
+    { key: 'crystal' as const },
+    { key: 'deuterium' as const },
+    { key: 'darkMatter' as const }
+  ]
 
   // 每种防御设施的建造数量
   const quantities = ref<Record<DefenseType, number>>({
@@ -184,6 +186,8 @@
     [DefenseType.PlasmaTurret]: 0,
     [DefenseType.SmallShieldDome]: 0,
     [DefenseType.LargeShieldDome]: 0,
+    [DefenseType.AntiBallisticMissile]: 0,
+    [DefenseType.InterplanetaryMissile]: 0,
     [DefenseType.PlanetaryShield]: 0
   })
 
@@ -205,19 +209,17 @@
   const handleBuild = (defenseType: DefenseType) => {
     const quantity = quantities.value[defenseType]
     if (quantity <= 0) {
-      alertDialog.value?.show({
-        title: t('defenseView.inputError'),
-        message: t('defenseView.inputErrorMessage')
-      })
+      alertDialogTitle.value = t('defenseView.inputError')
+      alertDialogMessage.value = t('defenseView.inputErrorMessage')
+      alertDialogOpen.value = true
       return
     }
 
     const success = buildDefense(defenseType, quantity)
     if (!success) {
-      alertDialog.value?.show({
-        title: t('defenseView.buildFailed'),
-        message: t('defenseView.buildFailedMessage')
-      })
+      alertDialogTitle.value = t('defenseView.buildFailed')
+      alertDialogMessage.value = t('defenseView.buildFailedMessage')
+      alertDialogOpen.value = true
     } else {
       quantities.value[defenseType] = 0
     }
@@ -240,14 +242,16 @@
     const totalCost = {
       metal: config.cost.metal * quantity,
       crystal: config.cost.crystal * quantity,
-      deuterium: config.cost.deuterium * quantity
+      deuterium: config.cost.deuterium * quantity,
+      darkMatter: config.cost.darkMatter * quantity
     }
 
     return (
       publicLogic.checkRequirements(planet.value, gameStore.player.technologies, config.requirements) &&
       planet.value.resources.metal >= totalCost.metal &&
       planet.value.resources.crystal >= totalCost.crystal &&
-      planet.value.resources.deuterium >= totalCost.deuterium
+      planet.value.resources.deuterium >= totalCost.deuterium &&
+      planet.value.resources.darkMatter >= totalCost.darkMatter
     )
   }
 
@@ -258,7 +262,8 @@
     return {
       metal: config.cost.metal * quantity,
       crystal: config.cost.crystal * quantity,
-      deuterium: config.cost.deuterium * quantity
+      deuterium: config.cost.deuterium * quantity,
+      darkMatter: config.cost.darkMatter * quantity
     }
   }
 </script>

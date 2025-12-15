@@ -34,9 +34,10 @@ export const validateBuildingUpgrade = (
   // 计算军官加成
   const bonuses = officerLogic.calculateActiveBonuses(officers, Date.now())
 
-  // 检查建造队列是否已满
+  // 检查建造队列是否已满（只计算建筑类型的队列项）
   const maxQueue = publicLogic.getMaxBuildQueue(planet, bonuses.additionalBuildQueue)
-  if (planet.buildQueue.length >= maxQueue) {
+  const buildingQueueCount = planet.buildQueue.filter(item => item.type === 'building' || item.type === 'demolish').length
+  if (buildingQueueCount >= maxQueue) {
     return { valid: false, reason: 'errors.buildQueueFull' }
   }
 
@@ -61,14 +62,29 @@ export const validateBuildingUpgrade = (
 /**
  * 执行建筑升级（扣除资源，添加到队列）
  */
-export const executeBuildingUpgrade = (planet: Planet, buildingType: BuildingType, officers: Record<OfficerType, Officer>): BuildQueueItem => {
+export const executeBuildingUpgrade = (
+  planet: Planet,
+  buildingType: BuildingType,
+  officers: Record<OfficerType, Officer>
+): BuildQueueItem => {
   const currentLevel = planet.buildings[buildingType] || 0
   const targetLevel = currentLevel + 1
   const cost = buildingLogic.calculateBuildingCost(buildingType, targetLevel)
 
   // 计算军官加成
   const bonuses = officerLogic.calculateActiveBonuses(officers, Date.now())
-  const time = buildingLogic.calculateBuildingTime(buildingType, targetLevel, bonuses.buildingSpeedBonus)
+
+  // 获取机器人工厂和纳米工厂等级
+  const roboticsFactoryLevel = planet.buildings[BuildingType.RoboticsFactory] || 0
+  const naniteFactoryLevel = planet.buildings[BuildingType.NaniteFactory] || 0
+
+  const time = buildingLogic.calculateBuildingTime(
+    buildingType,
+    targetLevel,
+    bonuses.buildingSpeedBonus,
+    roboticsFactoryLevel,
+    naniteFactoryLevel
+  )
 
   // 扣除资源
   resourceLogic.deductResources(planet.resources, cost)
@@ -130,9 +146,10 @@ export const validateBuildingDemolish = (
   // 计算军官加成
   const bonuses = officerLogic.calculateActiveBonuses(officers, Date.now())
 
-  // 检查建造队列是否已满
+  // 检查建造队列是否已满（只计算建筑类型的队列项）
   const maxQueue = publicLogic.getMaxBuildQueue(planet, bonuses.additionalBuildQueue)
-  if (planet.buildQueue.length >= maxQueue) {
+  const buildingQueueCount = planet.buildQueue.filter(item => item.type === 'building' || item.type === 'demolish').length
+  if (buildingQueueCount >= maxQueue) {
     return { valid: false, reason: 'errors.buildQueueFull' }
   }
 
@@ -142,12 +159,27 @@ export const validateBuildingDemolish = (
 /**
  * 执行建筑拆除（返还资源，添加到队列）
  */
-export const executeBuildingDemolish = (planet: Planet, buildingType: BuildingType, officers: Record<OfficerType, Officer>): BuildQueueItem => {
+export const executeBuildingDemolish = (
+  planet: Planet,
+  buildingType: BuildingType,
+  officers: Record<OfficerType, Officer>
+): BuildQueueItem => {
   const currentLevel = planet.buildings[buildingType] || 0
 
   // 计算军官加成
   const bonuses = officerLogic.calculateActiveBonuses(officers, Date.now())
-  const demolishTime = buildingLogic.calculateDemolishTime(buildingType, currentLevel, bonuses.buildingSpeedBonus)
+
+  // 获取机器人工厂和纳米工厂等级
+  const roboticsFactoryLevel = planet.buildings[BuildingType.RoboticsFactory] || 0
+  const naniteFactoryLevel = planet.buildings[BuildingType.NaniteFactory] || 0
+
+  const demolishTime = buildingLogic.calculateDemolishTime(
+    buildingType,
+    currentLevel,
+    bonuses.buildingSpeedBonus,
+    roboticsFactoryLevel,
+    naniteFactoryLevel
+  )
 
   // 返还50%资源
   const refund = buildingLogic.calculateDemolishRefund(buildingType, currentLevel)

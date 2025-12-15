@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Planet, Player, BuildQueueItem, FleetMission, BattleResult, SpyReport, Officer } from '@/types/game'
+import type { Planet, Player, BuildQueueItem, FleetMission, BattleResult, SpyReport, Officer, SpiedNotification, NPCActivityNotification, IncomingFleetAlert } from '@/types/game'
 import { TechnologyType, OfficerType } from '@/types/game'
 import type { Locale } from '@/locales'
 import pkg from '../../package.json'
@@ -18,7 +18,14 @@ export const useGameStore = defineStore('game', {
       researchQueue: [] as BuildQueueItem[],
       fleetMissions: [] as FleetMission[],
       battleReports: [] as BattleResult[],
-      spyReports: [] as SpyReport[]
+      spyReports: [] as SpyReport[],
+      spiedNotifications: [] as SpiedNotification[],
+      npcActivityNotifications: [] as NPCActivityNotification[],
+      missionReports: [],
+      incomingFleetAlerts: [] as IncomingFleetAlert[],
+      giftNotifications: [],
+      giftRejectedNotifications: [],
+      points: 0
     } as Player,
     currentPlanetId: '',
     isDark: '',

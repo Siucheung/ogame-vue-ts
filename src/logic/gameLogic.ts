@@ -21,6 +21,14 @@ export const initializePlayer = (playerId: string, playerName: string = 'Command
     fleetMissions: [],
     battleReports: [],
     spyReports: [],
+    spiedNotifications: [],
+    npcActivityNotifications: [],
+    missionReports: [],
+    incomingFleetAlerts: [],
+    giftNotifications: [],
+    giftRejectedNotifications: [],
+    diplomaticRelations: {},
+    diplomaticReports: [],
     points: 0
   }
 
