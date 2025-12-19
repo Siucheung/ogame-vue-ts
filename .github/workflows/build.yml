@@ -111,7 +111,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/release/*.APK
 
   # 3. 构建 Electron 客户端
   build-electron:
@@ -189,7 +189,7 @@ jobs:
           find ./raw-assets/electron-* -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" -o -name "*.zip" \) -exec cp {} ./final-release/ \;
 
           # 移动 Android APK
-          find ./raw-assets/android-apk -type f -name "*.apk" -exec cp {} ./final-release/ \; || true
+          find ./raw-assets/android-apk -type f -name "*.APK" -exec cp {} ./final-release/ \; || true
           
           # 检查结果
           echo "Final assets to upload:"
