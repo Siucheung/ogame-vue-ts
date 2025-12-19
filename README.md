@@ -54,21 +54,23 @@ OGame Vue TS 是一款受经典 OGame 游戏启发的单机版、基于浏览器
 
 #### 服务端
 
-[![Windows](https://img.shields.io/badge/Windows-x64-0078D6?style=flat&logo=windows)](https://github.com/setube/ogame-vue-ts/releases/latest/download/ogame-server-win.exe)
-[![Linux x64](https://img.shields.io/badge/Linux-x64-FCC624?style=flat&logo=linux&logoColor=black)](https://github.com/setube/ogame-vue-ts/releases/latest/download/ogame-server-linux)
-[![Linux ARM64](https://img.shields.io/badge/Linux-ARM64-FCC624?style=flat&logo=linux&logoColor=black)](https://github.com/setube/ogame-vue-ts/releases/latest/download/ogame-server-linux-arm64)
+[Windows](/releases/latest/download/ogame-windows-amd64.exe)
+
+[Linux amd64](/releases/latest/download/ogame-linux-amd64)
+
+[Linux arm64](/releases/latest/download/ogame-linux-arm64)
+
+[MacOS Intel](/releases/latest/download/ogame-macos-amd64)
+
+[MacOS](/releases/latest/download/ogame-macos-arm64)
 
 #### 桌面版
 
-[![Windows](https://img.shields.io/badge/Windows-Setup-0078D6?style=flat&logo=windows)](https://github.com/setube/ogame-vue-ts/releases/latest/download/OGame.Setup.exe)
-[![Linux](https://img.shields.io/badge/Linux-AppImage-FCC624?style=flat&logo=linux&logoColor=black)](https://github.com/setube/ogame-vue-ts/releases/latest/download/OGame.AppImage)
-[![macOS](https://img.shields.io/badge/macOS-DMG-000000?style=flat&logo=apple)](https://github.com/setube/ogame-vue-ts/releases/latest/download/OGame-mac.dmg)
+[Windows](/releases/latest/download/OGame.Setup.exe)
 
-#### Android
+[Ubuntu](/releases/latest/download/OGame.AppImage)
 
-[![ARM64](https://img.shields.io/badge/Android-ARM64-3DDC84?style=flat&logo=android&logoColor=white)](https://github.com/setube/ogame-vue-ts/releases/latest/download/OGame-1.4.0-arm64-v8a.APK)
-[![ARMv7](https://img.shields.io/badge/Android-ARMv7-3DDC84?style=flat&logo=android&logoColor=white)](https://github.com/setube/ogame-vue-ts/releases/latest/download/OGame-1.4.0-armeabi-v7a.APK)
-[![x64](https://img.shields.io/badge/Android-x64-3DDC84?style=flat&logo=android&logoColor=white)](https://github.com/setube/ogame-vue-ts/releases/latest/download/OGame-1.4.0-x86_64.APK)
+[MacOS](/releases/latest/download/OGame-mac.dmg)
 
 ### 环境要求
 
