@@ -18,6 +18,15 @@
           <div class="flex items-center gap-2">
             <span class="font-medium truncate">{{ npc.name }}</span>
             <span v-if="npc.note" class="text-muted-foreground text-sm truncate">({{ npc.note }})</span>
+            <!-- NPC难度等级徽章 -->
+            <Badge
+              v-if="npc.difficultyLevel"
+              :variant="difficultyBadgeVariant"
+              class="text-xs"
+              :class="difficultyLevelColor"
+            >
+              Lv.{{ npc.difficultyLevel }}
+            </Badge>
           </div>
           <div class="text-xs text-muted-foreground">
             {{ npc.planets.length }} {{ t('diplomacy.planets') }}
@@ -68,9 +77,18 @@
               'bg-gray-400': status === RelationStatus.Neutral
             }"
           />
-          <div class="flex-1 min-w-0">
+          <div class="flex-1 min-w-0 flex items-center gap-1 flex-wrap">
             <span class="font-medium truncate">{{ npc.name }}</span>
-            <span v-if="npc.note" class="text-muted-foreground text-sm ml-1">({{ npc.note }})</span>
+            <span v-if="npc.note" class="text-muted-foreground text-sm">({{ npc.note }})</span>
+            <!-- NPC难度等级徽章 (移动端) -->
+            <Badge
+              v-if="npc.difficultyLevel"
+              :variant="difficultyBadgeVariant"
+              class="text-xs"
+              :class="difficultyLevelColor"
+            >
+              Lv.{{ npc.difficultyLevel }}
+            </Badge>
           </div>
           <ChevronDown class="h-4 w-4 text-muted-foreground transition-transform flex-shrink-0" :class="{ 'rotate-180': isExpanded }" />
         </div>
@@ -212,6 +230,28 @@
     if (reputation.value >= 20) return 'text-green-600 dark:text-green-400'
     if (reputation.value <= -20) return 'text-red-600 dark:text-red-400'
     return 'text-muted-foreground'
+  })
+
+  // NPC难度等级颜色
+  const difficultyLevelColor = computed(() => {
+    const level = props.npc.difficultyLevel
+    if (!level) return 'text-muted-foreground'
+    if (level <= 1) return 'text-green-600 dark:text-green-400' // 新手
+    if (level <= 2) return 'text-lime-600 dark:text-lime-400' // 简单
+    if (level <= 3) return 'text-yellow-600 dark:text-yellow-400' // 普通
+    if (level <= 4) return 'text-orange-600 dark:text-orange-400' // 困难
+    if (level <= 5) return 'text-red-600 dark:text-red-400' // 专家
+    if (level <= 6) return 'text-purple-600 dark:text-purple-400' // 大师
+    return 'text-pink-600 dark:text-pink-400' // 传奇及以上
+  })
+
+  // NPC难度等级Badge样式
+  const difficultyBadgeVariant = computed((): 'default' | 'secondary' | 'destructive' | 'outline' => {
+    const level = props.npc.difficultyLevel
+    if (!level) return 'outline'
+    if (level <= 2) return 'secondary'
+    if (level <= 4) return 'default'
+    return 'destructive'
   })
 
   // 最近的外交事件

@@ -173,7 +173,8 @@
   const getQueueProgress = (item: BuildQueueItem): number => {
     const elapsed = currentTime.value - item.startTime
     const total = item.endTime - item.startTime
-    return Math.min(100, (elapsed / total) * 100)
+    if (total <= 0) return 100
+    return Math.max(0, Math.min(100, (elapsed / total) * 100))
   }
 
   // 统一的取消处理

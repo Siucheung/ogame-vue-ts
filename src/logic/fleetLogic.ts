@@ -74,6 +74,21 @@ export const createFleetMission = (
 }
 
 /**
+ * 运输任务失败原因
+ */
+export type TransportFailReason = 'targetNotFound' | 'giftRejected'
+
+/**
+ * 运输任务结果
+ */
+export interface TransportResult {
+  success: boolean
+  reputationGain?: number
+  overflow?: Resources
+  failReason?: TransportFailReason
+}
+
+/**
  * 处理运输任务到达
  */
 export const processTransportArrival = (
@@ -83,7 +98,7 @@ export const processTransportArrival = (
   allNpcs?: NPC[],
   locale: Locale = 'zh-CN',
   storageCapacityBonus: number = 0
-): { success: boolean; reputationGain?: number; overflow?: Resources } => {
+): TransportResult => {
   // 检查是否是赠送任务
   if (mission.isGift && mission.giftTargetNpcId && player && allNpcs) {
     const targetNpc = allNpcs.find(n => n.id === mission.giftTargetNpcId)
@@ -94,7 +109,7 @@ export const processTransportArrival = (
       // 如果礼物被拒绝，资源返还给玩家
       if (!giftResult.accepted) {
         // 资源保留在cargo中，返回时会退还给玩家
-        return { success: false, reputationGain: undefined }
+        return { success: false, reputationGain: undefined, failReason: 'giftRejected' }
       }
 
       // 礼物被接受，清空货物
@@ -114,10 +129,13 @@ export const processTransportArrival = (
       mission.cargo = result.overflow
       return { success: true, overflow: result.overflow }
     }
+    // 运输成功，清空货物
+    mission.cargo = { metal: 0, crystal: 0, deuterium: 0, darkMatter: 0, energy: 0 }
+    return { success: true }
   }
+  // 目标星球不存在
   mission.status = 'returning'
-  mission.cargo = { metal: 0, crystal: 0, deuterium: 0, darkMatter: 0, energy: 0 }
-  return { success: false }
+  return { success: false, failReason: 'targetNotFound' }
 }
 
 /**
@@ -357,6 +375,15 @@ export const canColonize = (player: Player): boolean => {
 }
 
 /**
+ * 殖民任务结果
+ */
+export interface ColonizeResult {
+  success: boolean
+  planet: Planet | null
+  failReason?: 'positionOccupied' | 'maxColoniesReached'
+}
+
+/**
  * 处理殖民任务到达
  */
 export const processColonizeArrival = (
@@ -364,18 +391,18 @@ export const processColonizeArrival = (
   targetPlanet: Planet | undefined,
   player: Player,
   colonyNameTemplate: string = 'Colony'
-): Planet | null => {
+): ColonizeResult => {
   if (targetPlanet) {
     // 位置已被占用
     mission.status = 'returning'
-    return null
+    return { success: false, planet: null, failReason: 'positionOccupied' }
   }
 
   // 检查殖民地槽位限制
   if (!canColonize(player)) {
     // 超出殖民地数量限制，殖民船返回
     mission.status = 'returning'
-    return null
+    return { success: false, planet: null, failReason: 'maxColoniesReached' }
   }
 
   // 创建新殖民地
@@ -431,7 +458,7 @@ export const processColonizeArrival = (
   mission.fleet[ShipType.ColonyShip] = (mission.fleet[ShipType.ColonyShip] || 1) - 1
   mission.status = 'returning'
 
-  return newPlanet
+  return { success: true, planet: newPlanet }
 }
 
 /**
@@ -482,6 +509,20 @@ export const calculateSpyDetectionChance = (attackerSpyLevel: number, defenderSp
 }
 
 /**
+ * 侦查任务失败原因
+ */
+export type SpyFailReason = 'targetNotFound'
+
+/**
+ * 侦查任务结果
+ */
+export interface SpyResult {
+  success: boolean
+  report?: SpyReport
+  failReason?: SpyFailReason
+}
+
+/**
  * 处理间谍任务到达
  */
 export const processSpyArrival = (
@@ -491,10 +532,10 @@ export const processSpyArrival = (
   defender: Player | null,
   allNpcs?: NPC[],
   locale: Locale = 'zh-CN'
-): SpyReport | null => {
+): SpyResult => {
   if (!targetPlanet) {
     mission.status = 'returning'
-    return null
+    return { success: false, failReason: 'targetNotFound' }
   }
 
   // 获取间谍技术等级
@@ -536,7 +577,21 @@ export const processSpyArrival = (
   }
 
   mission.status = 'returning'
-  return spyReport
+  return { success: true, report: spyReport }
+}
+
+/**
+ * 部署任务失败原因
+ */
+export type DeployFailReason = 'targetNotFound' | 'notOwnPlanet'
+
+/**
+ * 部署任务结果
+ */
+export interface DeployResult {
+  success: boolean
+  overflow?: Partial<Record<ShipType, number>>
+  failReason?: DeployFailReason
 }
 
 /**
@@ -547,10 +602,14 @@ export const processDeployArrival = (
   targetPlanet: Planet | undefined,
   playerId: string,
   technologies: Record<TechnologyType, number>
-): { success: boolean; overflow?: Partial<Record<ShipType, number>> } => {
-  if (!targetPlanet || targetPlanet.ownerId !== playerId) {
+): DeployResult => {
+  if (!targetPlanet) {
     mission.status = 'returning'
-    return { success: false }
+    return { success: false, failReason: 'targetNotFound' }
+  }
+  if (targetPlanet.ownerId !== playerId) {
+    mission.status = 'returning'
+    return { success: false, failReason: 'notOwnPlanet' }
   }
 
   // 使用安全添加函数，防止舰队仓储溢出
@@ -567,6 +626,21 @@ export const processDeployArrival = (
 }
 
 /**
+ * 回收任务失败原因
+ */
+export type RecycleFailReason = 'noDebrisField' | 'debrisEmpty'
+
+/**
+ * 回收任务结果
+ */
+export interface RecycleResult {
+  success: boolean
+  collectedResources?: Pick<Resources, 'metal' | 'crystal'>
+  remainingDebris?: Pick<Resources, 'metal' | 'crystal'> | null
+  failReason?: RecycleFailReason
+}
+
+/**
  * 处理回收任务到达
  */
 export const processRecycleArrival = (
@@ -575,10 +649,10 @@ export const processRecycleArrival = (
   player?: Player,
   allNpcs?: NPC[],
   locale: Locale = 'zh-CN'
-): { collectedResources: Pick<Resources, 'metal' | 'crystal'>; remainingDebris: Pick<Resources, 'metal' | 'crystal'> | null } | null => {
+): RecycleResult => {
   if (!debrisField) {
     mission.status = 'returning'
-    return null
+    return { success: false, failReason: 'noDebrisField' }
   }
 
   // 计算回收船的货舱容量
@@ -599,7 +673,7 @@ export const processRecycleArrival = (
   // 防止除零：如果残骸为0，直接返回
   if (totalDebris === 0) {
     mission.status = 'returning'
-    return null
+    return { success: false, failReason: 'debrisEmpty' }
   }
 
   // 按比例收集金属和晶体
@@ -625,6 +699,7 @@ export const processRecycleArrival = (
   }
 
   return {
+    success: true,
     collectedResources: {
       metal: collectedMetal,
       crystal: collectedCrystal
@@ -840,42 +915,114 @@ export const calculatePlanetDefensePower = (fleet: Partial<Fleet>, defense: Part
 }
 
 /**
- * 处理行星毁灭任务到达
+ * 处理行星/月球毁灭任务到达
+ * OGame规则：
+ * - 月球销毁概率 = (100 - √diameter) × √deathstars
+ * - 死星反向销毁概率 = √diameter / 2
+ * - 两个概率独立判定
  */
+
+/**
+ * 毁灭任务失败原因
+ */
+export type DestroyFailReason = 'targetNotFound' | 'ownPlanet' | 'noDeathstar' | 'chanceFailed'
+
+/**
+ * 销毁任务结果
+ */
+export interface DestroyResult {
+  success: boolean // 目标是否被销毁
+  destructionChance: number // 销毁概率
+  planetId?: string // 被销毁的星球/月球ID
+  deathstarsLost: boolean // 死星是否被反向销毁
+  deathstarDestructionChance: number // 死星反向销毁概率
+  isMoon: boolean // 目标是否为月球
+  failReason?: DestroyFailReason // 失败原因
+}
+
 export const processDestroyArrival = (
   mission: FleetMission,
   targetPlanet: Planet | undefined,
   attacker: Player
-): { success: boolean; destructionChance: number; planetId?: string } | null => {
-  if (!targetPlanet || targetPlanet.ownerId === attacker.id) {
+): DestroyResult => {
+  if (!targetPlanet) {
     mission.status = 'returning'
-    return null
+    return {
+      success: false,
+      destructionChance: 0,
+      deathstarsLost: false,
+      deathstarDestructionChance: 0,
+      isMoon: false,
+      failReason: 'targetNotFound'
+    }
+  }
+  if (targetPlanet.ownerId === attacker.id) {
+    mission.status = 'returning'
+    return {
+      success: false,
+      destructionChance: 0,
+      deathstarsLost: false,
+      deathstarDestructionChance: 0,
+      isMoon: targetPlanet.isMoon || false,
+      failReason: 'ownPlanet'
+    }
   }
 
   // 检查是否有死星
   const deathstarCount = mission.fleet[ShipType.Deathstar] || 0
   if (deathstarCount === 0) {
     mission.status = 'returning'
-    return null
+    return {
+      success: false,
+      destructionChance: 0,
+      deathstarsLost: false,
+      deathstarDestructionChance: 0,
+      isMoon: targetPlanet.isMoon || false,
+      failReason: 'noDeathstar'
+    }
   }
 
-  // 计算目标星球的防御力量
-  const planetaryShieldCount = targetPlanet.defense[DefenseType.PlanetaryShield] || 0
-  const defensePower = calculatePlanetDefensePower(targetPlanet.fleet, targetPlanet.defense)
+  // 根据目标类型使用不同的销毁逻辑
+  if (targetPlanet.isMoon) {
+    // 月球销毁使用 OGame 公式
+    const result = moonLogic.tryDestroyMoon(targetPlanet, deathstarCount)
 
-  // 计算摧毁概率
-  const destructionChance = calculateDestructionChance(deathstarCount, planetaryShieldCount, defensePower)
+    // 如果死星被反向销毁，从任务舰队中移除
+    if (result.deathstarsDestroyed) {
+      mission.fleet[ShipType.Deathstar] = 0
+    }
 
-  // 随机判断是否成功
-  const randomValue = Math.random() * 100
-  const success = randomValue < destructionChance
+    mission.status = 'returning'
 
-  mission.status = 'returning'
+    return {
+      success: result.moonDestroyed,
+      destructionChance: result.moonDestructionChance,
+      planetId: result.moonDestroyed ? targetPlanet.id : undefined,
+      deathstarsLost: result.deathstarsDestroyed,
+      deathstarDestructionChance: result.deathstarDestructionChance,
+      isMoon: true,
+      failReason: result.moonDestroyed ? undefined : 'chanceFailed'
+    }
+  } else {
+    // 行星销毁使用原有逻辑
+    const planetaryShieldCount = targetPlanet.defense[DefenseType.PlanetaryShield] || 0
+    const defensePower = calculatePlanetDefensePower(targetPlanet.fleet, targetPlanet.defense)
+    const destructionChance = calculateDestructionChance(deathstarCount, planetaryShieldCount, defensePower)
 
-  return {
-    success,
-    destructionChance,
-    planetId: success ? targetPlanet.id : undefined
+    const randomValue = Math.random() * 100
+    const success = randomValue < destructionChance
+
+    mission.status = 'returning'
+
+    return {
+      success,
+      destructionChance,
+      planetId: success ? targetPlanet.id : undefined,
+      deathstarsLost: false,
+      deathstarDestructionChance: 0,
+      isMoon: false,
+      failReason: success ? undefined : 'chanceFailed'
+    }
   }
 }
 
@@ -985,17 +1132,17 @@ export const updateFleetMissions = async (
         }
 
         case MissionType.Colonize:
-          const newColony = processColonizeArrival(mission, targetPlanet, attacker)
-          if (newColony) {
-            newColonies.push(newColony)
-            planets.set(targetKey, newColony)
+          const colonizeResult = processColonizeArrival(mission, targetPlanet, attacker)
+          if (colonizeResult.success && colonizeResult.planet) {
+            newColonies.push(colonizeResult.planet)
+            planets.set(targetKey, colonizeResult.planet)
           }
           break
 
         case MissionType.Spy:
-          const spyReport = processSpyArrival(mission, targetPlanet, attacker, defender)
-          if (spyReport) {
-            spyReports.push(spyReport)
+          const spyResult = processSpyArrival(mission, targetPlanet, attacker, defender)
+          if (spyResult.success && spyResult.report) {
+            spyReports.push(spyResult.report)
           }
           break
 
@@ -1010,7 +1157,7 @@ export const updateFleetMissions = async (
           const debrisId = `debris_${mission.targetPosition.galaxy}_${mission.targetPosition.system}_${mission.targetPosition.position}`
           const debrisField = debrisFields.get(debrisId)
           const recycleResult = processRecycleArrival(mission, debrisField, attacker, allNpcs)
-          if (recycleResult) {
+          if (recycleResult.success && recycleResult.collectedResources) {
             if (recycleResult.remainingDebris) {
               // 更新残骸场
               const updatedDebris: DebrisField = {
@@ -1029,7 +1176,7 @@ export const updateFleetMissions = async (
 
         case MissionType.Destroy:
           const destroyResult = processDestroyArrival(mission, targetPlanet, attacker)
-          if (destroyResult && destroyResult.success && destroyResult.planetId) {
+          if (destroyResult.success && destroyResult.planetId) {
             // 星球被摧毁
             destroyedPlanetIds.push(destroyResult.planetId)
 

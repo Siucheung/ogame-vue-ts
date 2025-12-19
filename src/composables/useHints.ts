@@ -107,6 +107,14 @@ const hints: Hint[] = [
     delay: 500
   },
   {
+    id: 'achievements_intro',
+    route: '/achievements',
+    titleKey: 'hints.achievements.title',
+    messageKey: 'hints.achievements.message',
+    icon: 'trophy',
+    delay: 500
+  },
+  {
     id: 'settings_intro',
     route: '/settings',
     titleKey: 'hints.settings.title',

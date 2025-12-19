@@ -97,6 +97,8 @@ export const calculateResourceCapacity = (planet: Planet, storageCapacityBonus: 
 
   const bonus = 1 + (storageCapacityBonus || 0) / 100
 
+  // OGame规则：基础容量10000，资源可以超过容量（只影响生产，不会丢失）
+  // 月球没有矿场，所以超过容量没有影响，玩家可以从行星运输资源到月球
   const baseCapacity = 10000
   const darkMatterBaseCapacity = 1000 // 暗物质基础容量较小
   return {

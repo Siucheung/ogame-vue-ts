@@ -49,7 +49,47 @@ jobs:
           name: server-${{ matrix.goos }}-${{ matrix.goarch }}
           path: ${{ matrix.executable }}
 
-  # 2. 构建 Electron 客户端
+  # 2. 构建 Android APK (ARM64, ARMv7, x86_64)
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build Frontend
+        run: |
+          pnpm install
+          pnpm run build
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build APK (Release)
+        working-directory: android
+        run: ./gradlew assembleRelease
+
+      - name: Upload APK Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/release/*.apk
+
+  # 3. 构建 Electron 客户端
   build-electron:
     name: Build Electron (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -91,9 +131,9 @@ jobs:
             pkg/*.dmg
             pkg/*.AppImage
 
-  # 3. 发布 Release
+  # 4. 发布 Release
   release:
-    needs: [ build-server, build-electron ]
+    needs: [ build-server, build-android, build-electron ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -123,6 +163,9 @@ jobs:
           
           # 移动 Electron 安装包 (排除 unpacked 目录)
           find ./raw-assets/electron-* -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" -o -name "*.zip" \) -exec cp {} ./final-release/ \;
+
+          # 移动 Android APK
+          find ./raw-assets/android-apk -type f -name "*.apk" -exec cp {} ./final-release/ \; || true
           
           # 检查结果
           echo "Final assets to upload:"

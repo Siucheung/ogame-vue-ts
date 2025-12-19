@@ -16,6 +16,7 @@ const router = createRouter({
     { path: '/messages', name: 'messages', component: () => import('@/views/MessagesView.vue') },
     { path: '/galaxy', name: 'galaxy', component: () => import('@/views/GalaxyView.vue') },
     { path: '/diplomacy', name: 'diplomacy', component: () => import('@/views/DiplomacyView.vue') },
+    { path: '/achievements', name: 'achievements', component: () => import('@/views/AchievementsView.vue') },
     { path: '/settings', name: 'settings', component: () => import('@/views/SettingsView.vue') },
     { path: '/gm', name: 'gm', component: () => import('@/views/GMView.vue') },
     { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/views/NotFoundView.vue') }

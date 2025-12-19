@@ -157,7 +157,7 @@
   import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
   import { ScrollArea } from '@/components/ui/scroll-area'
   import { Empty, EmptyContent, EmptyDescription } from '@/components/ui/empty'
-  import { Siren, Eye, Sword, Shield, Globe } from 'lucide-vue-next'
+  import { Siren, Eye, Sword, Shield, Globe, Recycle } from 'lucide-vue-next'
   import { MissionType } from '@/types/game'
   import type { IncomingFleetAlert } from '@/types/game'
   import { formatDate, formatTime } from '@/utils/format'
@@ -200,6 +200,8 @@
         return Eye
       case MissionType.Attack:
         return Sword
+      case MissionType.Recycle:
+        return Recycle
       default:
         return Siren
     }
@@ -212,6 +214,8 @@
         return 'text-purple-500'
       case MissionType.Attack:
         return 'text-red-500'
+      case MissionType.Recycle:
+        return 'text-amber-500'
       default:
         return 'text-yellow-500'
     }
@@ -229,6 +233,8 @@
         return t('enemyAlert.missionType.spy')
       case MissionType.Attack:
         return t('enemyAlert.missionType.attack')
+      case MissionType.Recycle:
+        return t('enemyAlert.missionType.recycle')
       default:
         return t('enemyAlert.missionType.unknown')
     }
@@ -241,6 +247,8 @@
         return t('enemyAlert.warning.spy')
       case MissionType.Attack:
         return t('enemyAlert.warning.attack')
+      case MissionType.Recycle:
+        return t('enemyAlert.warning.recycle')
       default:
         return t('enemyAlert.warning.unknown')
     }

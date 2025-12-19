@@ -109,57 +109,6 @@ pnpm build
 pnpm preview
 ```
 
-## 项目结构
-
-```
-ogame-vue-ts/
-├── public/               # 静态资源
-│   └── logo.svg         # 应用图标
-├── src/
-│   ├── assets/          # 动态资源
-│   ├── components/      # Vue 组件
-│   │   └── ui/         # shadcn-vue UI 组件
-│   ├── composables/    # Vue 组合式函数
-│   ├── config/         # 游戏配置
-│   ├── lib/            # 工具库
-│   ├── locales/        # 国际化翻译文件
-│   ├── logic/          # 游戏逻辑模块
-│   │   ├── buildingLogic.ts      # 建筑逻辑
-│   │   ├── buildingValidation.ts # 建筑验证
-│   │   ├── fleetLogic.ts         # 舰队逻辑
-│   │   ├── moonLogic.ts          # 月球逻辑
-│   │   ├── moonValidation.ts     # 月球验证
-│   │   ├── researchLogic.ts      # 研究逻辑
-│   │   ├── researchValidation.ts # 研究验证
-│   │   ├── shipLogic.ts          # 舰船逻辑
-│   │   └── shipValidation.ts     # 舰船验证
-│   ├── router/         # Vue Router 路由配置
-│   ├── stores/         # Pinia 状态存储
-│   ├── types/          # TypeScript 类型定义
-│   ├── utils/          # 工具函数
-│   ├── views/          # 页面组件
-│   │   ├── OverviewView.vue        # 概览页面
-│   │   ├── BuildingsView.vue       # 建筑页面
-│   │   ├── ResearchView.vue        # 研究页面
-│   │   ├── ShipyardView.vue        # 船坞页面
-│   │   ├── DefenseView.vue         # 防御页面
-│   │   ├── FleetView.vue           # 舰队页面
-│   │   ├── GalaxyView.vue          # 银河页面
-│   │   ├── OfficersView.vue        # 军官页面
-│   │   ├── BattleSimulatorView.vue # 战斗模拟器
-│   │   ├── MessagesView.vue        # 消息页面
-│   │   └── SettingsView.vue        # 设置页面
-│   ├── App.vue         # 根组件
-│   ├── main.ts         # 应用入口
-│   └── style.css       # 全局样式
-├── .github/
-│   └── ISSUE_TEMPLATE/ # GitHub issue 模板
-├── LICENSE             # CC BY-NC 4.0 许可证
-├── package.json        # 项目依赖
-├── tsconfig.json       # TypeScript 配置
-└── vite.config.ts      # Vite 配置
-```
-
 ## 支持的语言
 
 - 🇺🇸 English (英语)
