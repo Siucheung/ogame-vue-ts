@@ -1,0 +1,13 @@
+[install]
+# 配置包管理器的各种行为
+optional = true
+dev = true
+peer = true
+
+# 使用与项目兼容的锁定文件格式
+lockfile = true
+save_exact = true
+
+[run]
+# 当运行未知脚本时，允许 Bun 查找 node_modules/.bin
+prefer_global = true

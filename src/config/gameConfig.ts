@@ -56,7 +56,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
     name: '太阳能电站',
     description: '提供能源',
     baseCost: { metal: 75, crystal: 30, deuterium: 0, darkMatter: 0, energy: 0 },
-    baseTime: 15, // 减少建造时间：30→15秒
+    baseTime: 10, // 修改建造时间为10秒
     costMultiplier: 1.5,
     spaceUsage: 2,
     planetOnly: true, // OGame规则：月球不能建造太阳能电站

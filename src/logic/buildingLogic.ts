@@ -2,6 +2,7 @@ import type { Planet, Resources, BuildQueueItem } from '@/types/game'
 import { BuildingType, TechnologyType, ShipType, DefenseType } from '@/types/game'
 import { BUILDINGS } from '@/config/gameConfig'
 import * as pointsLogic from './pointsLogic'
+import { Building } from 'lucide-vue-next'
 
 // 用于生成唯一ID的计数器
 let queueIdCounter = 0
@@ -25,7 +26,8 @@ export const calculateBuildingCost = (buildingType: BuildingType, targetLevel: n
  * 计算建筑升级时间
  * 使用 2moons 公式（调整版）：
  * 1. 成本系数 = Σ (资源^0.3 / 0.003)
- * 2. 时间(秒) = 成本系数 / ((1 + 机器人工厂) × 2^纳米工厂 × 游戏速度)
+ * 2. 基础时间 = baseTime * 等级系数
+ * 3. 最终时间 = max(基础时间, 成本系数 / ((1 + 机器人工厂) × 2^纳米工厂 × 游戏速度))
  * @param buildingType 建筑类型
  * @param targetLevel 目标等级
  * @param buildingSpeedBonus 指挥官等提供的速度加成百分比
@@ -41,6 +43,18 @@ export const calculateBuildingTime = (
   naniteFactoryLevel: number = 0,
   gameSpeed: number = 1
 ): number => {
+  // 特殊处理：太阳能电站在目标等级小于3级时，建造时间固定为10秒
+  if ((buildingType === BuildingType.SolarPlant
+    || buildingType === BuildingType.MetalMine
+    || buildingType === BuildingType.CrystalMine
+    || buildingType === BuildingType.DeuteriumSynthesizer)
+    && targetLevel < 3) {
+    return 10;
+  }
+
+  // 获取建筑配置
+  const config = BUILDINGS[buildingType];
+
   // 计算该等级的成本
   const cost = calculateBuildingCost(buildingType, targetLevel)
 
@@ -53,14 +67,26 @@ export const calculateBuildingTime = (
   // 机器人工厂和纳米工厂的加速
   const factoryBonus = (1 + roboticsFactoryLevel) * Math.pow(2, naniteFactoryLevel)
 
+  // 基础时间计算：使用 baseTime 作为基础，并考虑等级影响
+  // 随着等级提高，建造时间也会相应增加，但增长速度比纯成本公式慢
+  const levelFactor = Math.log(targetLevel) * 0.5 + 1; // 使用对数函数，使时间增长更平滑
+  const baseConstructionTime = config.baseTime * levelFactor;
+
   // 简化公式：时间(秒) = 成本系数 / (工厂加成 × 游戏速度)
-  const timeInSeconds = elementCost / (factoryBonus * gameSpeed)
+  const timeFromCost = elementCost / (factoryBonus * gameSpeed);
+
+  // 综合考虑基础时间和成本时间，取较大者作为最终时间
+  // 这样可以确保低级建筑有合理的时间，高级建筑也不会过快完成
+  let timeInSeconds = Math.max(baseConstructionTime, timeFromCost);
 
   // 指挥官等的百分比加成
-  const speedMultiplier = 1 - buildingSpeedBonus / 100
+  const speedMultiplier = 1 - buildingSpeedBonus / 100;
 
-  // 确保最小时间为5秒
-  return Math.max(5, Math.floor(timeInSeconds * speedMultiplier))
+  // 应用速度加成，但确保不会低于最小时间
+  const adjustedTime = timeInSeconds * speedMultiplier;
+  
+  // 确保最小时间为1秒（原为5秒，降低以提高灵活性）
+  return Math.max(1, Math.floor(adjustedTime));
 }
 
 /**
