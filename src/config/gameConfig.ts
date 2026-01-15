@@ -327,7 +327,7 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
       3: { [BuildingType.LunarBase]: 5, [TechnologyType.HyperspaceTechnology]: 10, [BuildingType.NaniteFactory]: 3 }
     }
   },
-  // 特殊建筑
+  // 特殊建筑,删除最高等级,
   [BuildingType.PlanetDestroyerFactory]: {
     id: BuildingType.PlanetDestroyerFactory,
     name: '行星毁灭者工厂',
@@ -337,7 +337,6 @@ export const BUILDINGS: Record<BuildingType, BuildingConfig> = {
     costMultiplier: 2,
     spaceUsage: 15,
     planetOnly: true,
-    maxLevel: 3, // 最多3级
     requirements: {
       [BuildingType.Shipyard]: 12,
       [BuildingType.RoboticsFactory]: 10,

@@ -2,7 +2,6 @@ import type { Planet, Resources, BuildQueueItem } from '@/types/game'
 import { BuildingType, TechnologyType, ShipType, DefenseType } from '@/types/game'
 import { BUILDINGS } from '@/config/gameConfig'
 import * as pointsLogic from './pointsLogic'
-import { Building } from 'lucide-vue-next'
 
 // 用于生成唯一ID的计数器
 let queueIdCounter = 0
@@ -84,7 +83,7 @@ export const calculateBuildingTime = (
 
   // 应用速度加成，但确保不会低于最小时间
   const adjustedTime = timeInSeconds * speedMultiplier;
-  
+
   // 确保最小时间为1秒（原为5秒，降低以提高灵活性）
   return Math.max(1, Math.floor(adjustedTime));
 }
