@@ -1405,7 +1405,7 @@ export const MOON_CONFIG = {
 
 // 行星配置
 export const PLANET_CONFIG = {
-  baseSize: 300, // 行星基础空间
+  baseSize: 700, // 行星基础空间
   terraformerSpaceBonus: 30, // 每级地形改造器增加的空间
   terraformingTechSpaceBonus: 30 // 每级地形改造技术增加的空间
 }

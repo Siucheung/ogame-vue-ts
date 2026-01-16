@@ -737,6 +737,12 @@
 
   const hasMoon = computed(() => !!moon.value)
 
+  /**
+   * 处理建筑或科技完成的通知
+   * @param type - 通知类型 ('building' 或 'technology')
+   * @param itemType - 建筑或科技类型
+   * @param level - 等级（可选）
+   */
   const handleNotification = (type: string, itemType: string, level?: number) => {
     const settings = gameStore.notificationSettings
     if (!settings) return
@@ -781,7 +787,10 @@
     }
   }
 
-  // 处理解锁通知
+  /**
+   * 处理解锁通知
+   * @param unlockedItems - 解锁项列表，包含类型、ID和名称
+   */
   const handleUnlockNotification = (unlockedItems: Array<{ type: 'building' | 'technology'; id: string; name: string }>) => {
     const settings = gameStore.notificationSettings
     if (!settings) return
@@ -810,6 +819,10 @@
     })
   }
 
+  /**
+   * 处理确认对话框的确认操作
+   * 执行存储的回调函数并关闭对话框
+   */
   const handleConfirmDialogConfirm = () => {
     if (confirmDialogAction.value) {
       confirmDialogAction.value()
@@ -817,6 +830,10 @@
     confirmDialogOpen.value = false
   }
 
+  /**
+   * 初始化游戏数据
+   * 如果是新玩家则创建初始数据，否则处理现有数据的更新
+   */
   const initGame = async () => {
     const shouldInit = gameLogic.shouldInitializeGame(gameStore.player.planets)
     if (!shouldInit) {
@@ -868,6 +885,10 @@
     gameStore.player.points = publicLogic.calculatePlayerPoints(gameStore.player)
   }
 
+  /**
+   * 生成NPC星球
+   * 在宇宙中随机放置一定数量的NPC控制星球
+   */
   const generateNPCPlanets = () => {
     const npcCount = 200
     for (let i = 0; i < npcCount; i++) {
@@ -879,6 +900,10 @@
     }
   }
 
+  /**
+   * 游戏主更新循环
+   * 处理资源更新、舰队任务、NPC行为、成就检查等游戏逻辑
+   */
   const updateGame = async () => {
     const now = Date.now()
     if (gameStore.isPaused) return
@@ -1970,6 +1995,11 @@
     npcUpdateCounter.value = 0
   }
 
+  /**
+   * 更新NPC行为系统
+   * 控制NPC的侦察和攻击决策
+   * @param deltaSeconds - 时间增量（秒）
+   */
   const updateNPCBehavior = (deltaSeconds: number) => {
     // 累积时间
     npcBehaviorCounter.value += deltaSeconds
@@ -2118,7 +2148,10 @@
     npcBehaviorCounter.value = 0
   }
 
-  // 更新NPC关系统计（友好/敌对数量）
+  /**
+   * 更新NPC关系统计
+   * 计算友好和敌对NPC的数量并更新玩家统计数据
+   */
   const updateNPCRelationStats = () => {
     let friendlyCount = 0
     let hostileCount = 0
@@ -2137,7 +2170,10 @@
     gameLogic.trackDiplomacyStats(gameStore.player, 'updateRelations', { friendlyCount, hostileCount })
   }
 
-  // 检查成就解锁
+  /**
+   * 检查成就解锁
+   * 检查玩家是否满足某些成就的解锁条件
+   */
   const achievementCheckCounter = ref(0)
   const ACHIEVEMENT_CHECK_INTERVAL = 5 // 每5秒检查一次成就
 
@@ -2168,7 +2204,10 @@
     achievementCheckCounter.value = 0
   }
 
-  // 启动游戏循环
+  /**
+   * 启动游戏循环
+   * 开始定期调用游戏更新函数
+   */
   const startGameLoop = () => {
     if (gameStore.isPaused) return
     // 清理旧的定时器
@@ -2184,7 +2223,10 @@
     }, interval)
   }
 
-  // 停止游戏循环
+  /**
+   * 停止游戏循环
+   * 清除游戏更新定时器
+   */
   const stopGameLoop = () => {
     if (gameLoop.value) {
       clearInterval(gameLoop.value)
@@ -2192,7 +2234,10 @@
     }
   }
 
-  // 启动积分更新定时器（每10秒更新一次）
+  /**
+   * 启动积分更新定时器
+   * 每10秒更新一次玩家积分
+   */
   const startPointsUpdate = () => {
     if (pointsUpdateInterval.value) {
       clearInterval(pointsUpdateInterval.value)
@@ -2204,16 +2249,29 @@
     }, 10000) // 10秒更新一次
   }
 
-  // 处理取消建造事件
+  /**
+   * 处理取消建造事件
+   * 响应自定义事件并调用取消建造逻辑
+   * @param event - 自定义事件对象
+   */
   const handleCancelBuildEvent = (event: CustomEvent) => {
     handleCancelBuild(event.detail)
   }
 
-  // 处理取消研究事件
+  /**
+   * 处理取消研究事件
+   * 响应自定义事件并调用取消研究逻辑
+   * @param event - 自定义事件对象
+   */
   const handleCancelResearchEvent = (event: CustomEvent) => {
     handleCancelResearch(event.detail)
   }
 
+  /**
+   * 设置科乐美秘籍监听
+   * 监听键盘输入以激活GM模式
+   * @returns 清理函数，用于移除事件监听器
+   */
   // 科乐美秘籍：上上下下左左右右BA
   const setupKonamiCode = () => {
     const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowLeft', 'ArrowRight', 'ArrowRight', 'b', 'a']
@@ -2245,14 +2303,22 @@
     }
   }
 
-  // 打开重命名对话框
+  /**
+   * 打开重命名对话框
+   * 显示用于重命名星球的对话框
+   * @param planetId - 要重命名的星球ID
+   * @param currentName - 当前星球名称
+   */
   const openRenameDialog = (planetId: string, currentName: string) => {
     renamingPlanetId.value = planetId
     newPlanetName.value = currentName
     renameDialogOpen.value = true
   }
 
-  // 确认重命名
+  /**
+   * 确认重命名星球
+   * 保存新星球名称并关闭对话框
+   */
   const confirmRenamePlanet = () => {
     if (!renamingPlanetId.value || !newPlanetName.value.trim()) return
 
@@ -2266,7 +2332,12 @@
     newPlanetName.value = ''
   }
 
-  // 检查功能是否解锁
+  /**
+   * 检查功能是否解锁
+   * 根据星球上的建筑等级判断特定功能是否可用
+   * @param path - 功能路径
+   * @returns 是否解锁
+   */
   const isFeatureUnlocked = (path: string): boolean => {
     const requirement = featureRequirements[path]
     if (!requirement) {
@@ -2276,7 +2347,10 @@
     return currentLevel >= requirement.level
   }
 
-  // 切换到月球
+  /**
+   * 切换到月球
+   * 将当前活动星球设置为当前星球关联的月球
+   */
   const switchToMoon = () => {
     if (moon.value) {
       gameStore.currentPlanetId = moon.value.id
@@ -2284,7 +2358,10 @@
     }
   }
 
-  // 切换回母星
+  /**
+   * 切换回母星
+   * 将当前活动星球设置为当前月球关联的母星
+   */
   const switchToParentPlanet = () => {
     if (planet.value?.parentPlanetId) {
       gameStore.currentPlanetId = planet.value.parentPlanetId
@@ -2292,23 +2369,37 @@
     }
   }
 
-  // 切换到指定星球
+  /**
+   * 切换到指定星球
+   * 将当前活动星球设置为指定的星球
+   * @param planetId - 目标星球ID
+   */
   const switchToPlanet = (planetId: string) => {
     gameStore.currentPlanetId = planetId
     router.push('/')
   }
 
-  // 切换侧边栏
+  /**
+   * 切换侧边栏状态
+   * 切换侧边栏的展开/收缩状态
+   */
   const toggleSidebar = () => {
     sidebarOpen.value = !sidebarOpen.value
   }
 
-  // 处理侧边栏打开/关闭状态变化
+  /**
+   * 处理侧边栏打开/关闭状态变化
+   * @param open - 侧边栏是否打开
+   */
   const handleSidebarOpenChange = (open: boolean) => {
     sidebarOpen.value = open
   }
 
-  // 取消建造
+  /**
+   * 取消建造
+   * 取消指定的建筑升级队列项目并退还部分资源
+   * @param queueId - 队列项ID
+   */
   const handleCancelBuild = (queueId: string) => {
     confirmDialogTitle.value = t('queue.cancelBuild')
     confirmDialogMessage.value = t('queue.confirmCancel')
@@ -2326,7 +2417,11 @@
     confirmDialogOpen.value = true
   }
 
-  // 取消研究
+  /**
+   * 取消研究
+   * 取消指定的研究队列项目并退还部分资源
+   * @param queueId - 队列项ID
+   */
   const handleCancelResearch = (queueId: string) => {
     confirmDialogTitle.value = t('queue.cancelResearch')
     confirmDialogMessage.value = t('queue.confirmCancel')
